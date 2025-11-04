@@ -1,0 +1,48 @@
+Copyright (c) 2025 The Orpheus497 Project Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+DEPENDENCY ATTRIBUTIONS
+
+This software uses the following Free and Open Source Software (FOSS) libraries:
+
+1. Python (≥3.8)
+   License: Python Software Foundation License
+   Copyright: Python Software Foundation
+   URL: https://www.python.org/
+
+2. rich
+   License: MIT License
+   Copyright: Will McGugan
+   URL: https://github.com/Textualize/rich
+
+3. click
+   License: BSD-3-Clause License
+   Copyright: Pallets Team
+   URL: https://github.com/pallets/click
+
+4. PyYAML
+   License: MIT License
+   Copyright: Kirill Simonov
+   URL: https://github.com/yaml/pyyaml
+
+All dependencies are FOSS with permissive licenses compatible with the MIT License.
+Full license texts for dependencies can be found in their respective repositories.
