@@ -8,8 +8,6 @@
 
 **Created by orpheus497**
 
-This project is hosted on [Codeberg](https://codeberg.org/orpheus497/allsorted.git).
-
 ---
 
 ## ✨ Features
@@ -491,11 +489,8 @@ Copyright (c) 2025 The Orpheus497 Project Contributors
 
 ## 🔗 Links
 
-- [Codeberg Repository](https://codeberg.org/orpheus497/allsorted.git)
 - [Changelog](CHANGELOG.md)
 
 ---
 
 **Made with ❤️ by orpheus497**
-
-This project is hosted on [Codeberg](https://codeberg.org/orpheus497/allsorted.git).
