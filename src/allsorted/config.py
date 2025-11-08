@@ -23,12 +23,12 @@ DEFAULT_CLASSIFICATION_RULES: Dict[str, Dict[str, List[str]]] = {
         "Ebooks": [".epub", ".mobi", ".azw", ".azw3"],
     },
     "Audio": {
-        "Music": [".mp3", ".flac", ".ogg", ".wav", ".wma", ".m4a", ".aac"],
+        "Music": [".mp3", ".flac", ".ogg", ".wav", ".wma", ".m4a", ".aac", ".opus"],
         "Podcasts": [".m4b"],
         "VoiceMemos": [".amr", ".3ga"],
     },
     "Pics": {
-        "Photos": [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".heic", ".webp"],
+        "Photos": [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".heic", ".webp", ".avif", ".jxl"],
         "Vector": [".svg", ".ai", ".eps"],
         "Raw": [".cr2", ".nef", ".dng", ".arw", ".raw"],
         "Icons": [".ico"],
@@ -44,17 +44,18 @@ DEFAULT_CLASSIFICATION_RULES: Dict[str, Dict[str, List[str]]] = {
         "Android": [".apk", ".apkm", ".xapk"],
     },
     "Code": {
-        "Web": [".html", ".htm", ".css", ".js", ".jsx", ".ts", ".tsx", ".vue"],
+        "Web": [".html", ".htm", ".css", ".js", ".jsx", ".ts", ".tsx", ".vue", ".mjs", ".wasm"],
         "Python": [".py", ".pyw", ".pyx", ".ipynb"],
         "C": [".c", ".h", ".cpp", ".hpp", ".cc", ".cxx"],
         "Shell": [".sh", ".bash", ".zsh", ".fish"],
         "Java": [".java", ".jar", ".class"],
-        "Go": [".go"],
+        "Go": [".go", ".mod", ".sum"],
         "Ruby": [".rb", ".rake"],
         "PHP": [".php"],
-        "Rust": [".rs"],
+        "Rust": [".rs", ".toml"],
         "Swift": [".swift"],
         "Kotlin": [".kt", ".kts"],
+        "Zig": [".zig"],
     },
     "Archives": {
         "Compressed": [".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz", ".lz", ".lzma"],
@@ -105,19 +106,23 @@ class Config:
     # File handling
     follow_symlinks: bool = False
     ignore_hidden: bool = True
-    ignore_patterns: List[str] = field(default_factory=lambda: [".devAI", ".git", "node_modules"])
+    ignore_patterns: List[str] = field(default_factory=lambda: ["**/.devAI/**", "**/.git/**", "**/node_modules/**", "**/__pycache__/**"])
 
     # Duplicate handling
     detect_duplicates: bool = True
     isolate_duplicates: bool = True
 
     # Performance
+    hash_algorithm: str = "sha256"  # Options: sha256 (secure), xxhash (fast)
     hash_block_size: int = 65536  # 64KB blocks for hashing
     parallel_processing: bool = False
+    max_workers: int = 4  # Number of parallel workers
+    use_async: bool = False  # Use async I/O for better performance
 
     # Safety
     require_confirmation: bool = False
     create_backup: bool = False
+    verify_integrity: bool = False  # Verify file hash after moving
 
     # Logging
     log_level: str = "INFO"
@@ -128,6 +133,32 @@ class Config:
     directory_prefix: str = "all_"  # Prefix for all created directories
     duplicates_folder: str = "Duplicates"
     folders_folder: str = "Folders"
+
+    # Metadata-based organization
+    use_metadata: bool = False  # Enable metadata extraction
+    metadata_strategy: str = "auto"  # Options: auto, exif-date, id3-artist, etc.
+    perceptual_dedup: bool = False  # Enable perceptual duplicate detection
+    perceptual_threshold: int = 5  # Similarity threshold (0-10)
+
+    # Magic number classification
+    use_magic: bool = False  # Use file content detection instead of extension
+
+    # Watch mode
+    watch_interval: float = 1.0  # Seconds between file system checks
+    watch_recursive: bool = True  # Watch subdirectories
+    watch_auto_organize: bool = True  # Automatically organize new files
+
+    # Archive handling
+    scan_archives: bool = False  # Scan inside archive files
+    auto_extract: bool = False  # Auto-extract archives before organizing
+
+    # Size thresholds for by-size strategy (in MB)
+    size_thresholds: Dict[str, int] = field(default_factory=lambda: {
+        "small_max": 1,
+        "medium_min": 1,
+        "medium_max": 100,
+        "large_min": 100,
+    })
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Config":
@@ -270,8 +301,10 @@ def load_config(config_path: Optional[Path] = None) -> Config:
                 return default_config
             return Config.from_dict(data)
     except (yaml.YAMLError, OSError, ValueError) as e:
-        print(f"Warning: Could not load config from {config_path}: {e}")
-        print("Using default configuration.")
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Could not load config from {config_path}: {e}")
+        logger.info("Using default configuration.")
         return default_config
 
 

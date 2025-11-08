@@ -46,29 +46,76 @@ def format_duration(seconds: float) -> str:
         return f"{hours}h {minutes}m"
 
 
-def safe_path_resolve(path: Path) -> Path:
+def safe_path_resolve(path: Path, base_dir: Optional[Path] = None) -> Path:
     """
-    Safely resolve a path, handling symlinks and relative paths.
+    Safely resolve a path, handling symlinks and relative paths with validation.
 
     Args:
         path: Path to resolve
+        base_dir: Base directory to validate against (defaults to cwd)
 
     Returns:
         Resolved absolute path
 
     Raises:
-        ValueError: If path contains suspicious patterns
+        ValueError: If path contains suspicious patterns or escapes base directory
     """
     try:
-        resolved = path.resolve()
-        # Check for directory traversal attempts
-        if ".." in str(path):
-            # Verify the resolved path is what we expect
-            if not str(resolved).startswith(str(Path.cwd())):
-                raise ValueError(f"Suspicious path detected: {path}")
+        # Resolve the path fully
+        resolved = path.resolve(strict=False)
+
+        # If symlink, validate the target
+        if path.is_symlink():
+            try:
+                # Ensure symlink doesn't create a loop
+                target = path.readlink()
+                if target.is_absolute():
+                    # Absolute symlinks must point within base_dir
+                    if base_dir and not str(target).startswith(str(base_dir.resolve())):
+                        raise ValueError(f"Symlink points outside base directory: {path}")
+            except (OSError, RuntimeError) as e:
+                raise ValueError(f"Invalid symlink: {path}") from e
+
+        # Validate against base directory if provided
+        if base_dir:
+            try:
+                base_resolved = base_dir.resolve()
+                resolved.relative_to(base_resolved)
+            except ValueError:
+                raise ValueError(
+                    f"Path escapes base directory: {path} -> {resolved} (base: {base_dir})"
+                )
+
         return resolved
     except (OSError, RuntimeError) as e:
         raise ValueError(f"Cannot resolve path {path}: {e}") from e
+
+
+def sanitize_filename(filename: str) -> str:
+    """
+    Sanitize a filename to prevent log injection and filesystem issues.
+
+    Args:
+        filename: Original filename
+
+    Returns:
+        Sanitized filename safe for logging and filesystem operations
+    """
+    # Remove control characters (including newlines) that could cause log injection
+    sanitized = "".join(char for char in filename if ord(char) >= 32 or char in ("\t",))
+
+    # Remove or replace problematic characters
+    replacements = {
+        "\n": "_",
+        "\r": "_",
+        "\t": "_",
+        "\x00": "",
+    }
+
+    for old, new in replacements.items():
+        sanitized = sanitized.replace(old, new)
+
+    return sanitized
 
 
 def is_hidden(path: Path) -> bool:
