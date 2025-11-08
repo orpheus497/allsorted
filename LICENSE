@@ -44,5 +44,45 @@ This software uses the following Free and Open Source Software (FOSS) libraries:
    Copyright: Kirill Simonov
    URL: https://github.com/yaml/pyyaml
 
+5. python-magic
+   License: MIT License
+   Copyright: Adam Hupp
+   URL: https://github.com/ahupp/python-magic
+
+6. Pillow
+   License: HPND License (Historical Permission Notice and Disclaimer)
+   Copyright: Jeffrey A. Clark, Alex Clark and contributors
+   URL: https://github.com/python-pillow/Pillow
+
+7. mutagen
+   License: GPL-2.0 License
+   Copyright: Joe Wreschnig, Michael Urman
+   URL: https://github.com/quodlibet/mutagen
+
+8. imagehash
+   License: BSD-2-Clause License
+   Copyright: Johannes Buchner
+   URL: https://github.com/JohannesBuchner/imagehash
+
+9. aiofiles
+   License: Apache-2.0 License
+   Copyright: Tin Tvrtković
+   URL: https://github.com/Tinche/aiofiles
+
+10. xxhash
+    License: BSD-2-Clause License
+    Copyright: Yue Du
+    URL: https://github.com/ifduyue/python-xxhash
+
+11. watchdog
+    License: Apache-2.0 License
+    Copyright: Yesudeep Mangalapilly and contributors
+    URL: https://github.com/gorakhargosh/watchdog
+
+12. typing-extensions
+    License: PSF License (Python Software Foundation License)
+    Copyright: Python typing community
+    URL: https://github.com/python/typing_extensions
+
 All dependencies are FOSS with permissive licenses compatible with the MIT License.
 Full license texts for dependencies can be found in their respective repositories.
