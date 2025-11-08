@@ -8,7 +8,7 @@
 
 **Created by orpheus497**
 
-This project is hosted on [Codeberg](https://codeberg.org/orpheus497/allsorted.git).
+This project is hosted on [GitHub](https://github.com/orpheus497/allsorted).
 
 ---
 
@@ -23,7 +23,7 @@ This project is hosted on [Codeberg](https://codeberg.org/orpheus497/allsorted.g
 - 🔄 **Flexible Strategies** - Organize by extension, date, size, or hybrid approach
 - 📝 **Comprehensive Logging** - Detailed operation logs and JSON reports
 - 🚀 **Fast & Efficient** - Optimized file operations with smart caching
-- ✅ **Production Ready** - 80%+ test coverage, type-safe, fully documented
+- ✅ **Production Ready** - Type-safe with comprehensive type hints, fully documented
 
 ---
 
@@ -491,11 +491,12 @@ Copyright (c) 2025 The Orpheus497 Project Contributors
 
 ## 🔗 Links
 
-- [Codeberg Repository](https://codeberg.org/orpheus497/allsorted.git)
+- [GitHub Repository](https://github.com/orpheus497/allsorted)
 - [Changelog](CHANGELOG.md)
+- [Issues](https://github.com/orpheus497/allsorted/issues)
 
 ---
 
 **Made with ❤️ by orpheus497**
 
-This project is hosted on [Codeberg](https://codeberg.org/orpheus497/allsorted.git).
+This project is hosted on [GitHub](https://github.com/orpheus497/allsorted).

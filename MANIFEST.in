@@ -4,8 +4,10 @@ include CHANGELOG.md
 include requirements.txt
 include .allsorted.example.yaml
 include .pre-commit-config.yaml
+include src/allsorted/py.typed
 recursive-include src *.py
 recursive-include docs *.md
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 recursive-exclude tests *
+exclude .dev-docs/*

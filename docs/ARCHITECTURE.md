@@ -264,6 +264,6 @@ Future: Entry point-based plugin system for custom classifiers, validators, and 
 ---
 
 **For more information:**
-- [Contributing Guide](CONTRIBUTING.md)
-- [Repository](https://codeberg.org/orpheus497/allsorted)
+- [Repository](https://github.com/orpheus497/allsorted)
 - [Changelog](../CHANGELOG.md)
+- [Issues](https://github.com/orpheus497/allsorted/issues)
