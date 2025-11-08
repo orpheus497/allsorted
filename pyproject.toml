@@ -53,11 +53,11 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://codeberg.org/orpheus497/allsorted"
-Repository = "https://codeberg.org/orpheus497/allsorted.git"
-Documentation = "https://codeberg.org/orpheus497/allsorted#readme"
-Changelog = "https://codeberg.org/orpheus497/allsorted/src/branch/main/CHANGELOG.md"
-Issues = "https://codeberg.org/orpheus497/allsorted/issues"
+Homepage = "https://github.com/orpheus497/allsorted"
+Repository = "https://github.com/orpheus497/allsorted.git"
+Documentation = "https://github.com/orpheus497/allsorted#readme"
+Changelog = "https://github.com/orpheus497/allsorted/blob/main/CHANGELOG.md"
+Issues = "https://github.com/orpheus497/allsorted/issues"
 
 [project.scripts]
 allsorted = "allsorted.cli:main"

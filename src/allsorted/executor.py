@@ -7,7 +7,7 @@ import logging
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
 from allsorted.models import (
     ConflictResolution,
@@ -29,22 +29,24 @@ class ExecutionError(Exception):
 class OrganizationExecutor:
     """Executes organization plans with safety and logging."""
 
-    def __init__(self, dry_run: bool = False, log_operations: bool = True):
+    def __init__(self, dry_run: bool = False, log_operations: bool = True, config: Optional["Config"] = None):  # type: ignore[name-defined]
         """
         Initialize executor.
 
         Args:
             dry_run: If True, simulate operations without moving files
             log_operations: If True, log all operations to a file for undo capability
+            config: Optional config instance (will be extracted from plan if not provided)
         """
         self.dry_run = dry_run
         self.log_operations = log_operations
+        self.config = config
         self.operation_log_path: Optional[Path] = None
 
     def execute_plan(
         self,
         plan: OrganizationPlan,
-        progress_callback: Optional[callable] = None,
+        progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> OrganizationResult:
         """
         Execute an organization plan.
@@ -151,9 +153,19 @@ class OrganizationExecutor:
         if self.dry_run:
             logger.info(f"[DRY RUN] Would move: {source} -> {final_destination}")
         else:
+            # Store source hash for integrity verification if enabled
+            source_hash = operation.file_info.hash if operation.file_info else None
+
             try:
                 shutil.move(str(source), str(final_destination))
                 logger.info(f"Moved: {source} -> {final_destination}")
+
+                # Verify integrity if enabled
+                if source_hash and self._should_verify_integrity():
+                    if not self._verify_file_integrity(source_hash, final_destination):
+                        # Integrity check failed - this is serious
+                        logger.error(f"Integrity verification failed for {final_destination}")
+                        raise ExecutionError(f"Integrity verification failed after move: {final_destination}")
 
                 # Log operation for undo capability
                 if self.log_operations:
@@ -265,9 +277,16 @@ class OrganizationExecutor:
         """
         logger.info("Cleaning up empty directories in managed folders...")
 
-        # Get config from the plan result
-        from allsorted.config import Config
-        config = Config()  # Use default config for prefix check
+        # Use stored config, or get from plan, or fall back to default
+        config = self.config
+        if config is None:
+            # Try to get from plan
+            if hasattr(result.plan, 'config'):
+                config = result.plan.config
+            else:
+                # Fall back to default config
+                from allsorted.config import Config
+                config = Config()
 
         # Walk from bottom up to delete nested empty dirs first
         for dirpath in sorted(root_dir.rglob("*"), key=lambda p: len(p.parts), reverse=True):
@@ -368,6 +387,74 @@ class OrganizationExecutor:
 
         except (OSError, json.JSONDecodeError) as e:
             logger.warning(f"Could not log operation: {e}")
+
+    def _should_verify_integrity(self) -> bool:
+        """
+        Check if integrity verification is enabled.
+
+        Returns:
+            True if integrity verification should be performed
+        """
+        config = self.config
+        if config is None:
+            return False
+        return getattr(config, 'verify_integrity', False)
+
+    def _verify_file_integrity(self, expected_hash: str, file_path: Path) -> bool:
+        """
+        Verify file integrity by recalculating hash.
+
+        Args:
+            expected_hash: Expected hash value from source file
+            file_path: Path to file to verify
+
+        Returns:
+            True if hash matches, False otherwise
+        """
+        if not file_path.exists():
+            logger.error(f"Cannot verify integrity - file does not exist: {file_path}")
+            return False
+
+        try:
+            # Recalculate hash using same algorithm
+            import hashlib
+            config = self.config
+            algorithm = getattr(config, 'hash_algorithm', 'sha256') if config else 'sha256'
+
+            if algorithm == "xxhash":
+                try:
+                    import xxhash
+                    hasher = xxhash.xxh64()
+                except ImportError:
+                    hasher = hashlib.sha256()
+            else:
+                hasher = hashlib.sha256()
+
+            block_size = getattr(config, 'hash_block_size', 65536) if config else 65536
+
+            with open(file_path, "rb") as f:
+                while True:
+                    block = f.read(block_size)
+                    if not block:
+                        break
+                    hasher.update(block)
+
+            actual_hash = hasher.hexdigest()
+
+            if actual_hash == expected_hash:
+                logger.debug(f"Integrity verified for {file_path}")
+                return True
+            else:
+                logger.error(
+                    f"Integrity check failed for {file_path}\n"
+                    f"Expected: {expected_hash}\n"
+                    f"Actual: {actual_hash}"
+                )
+                return False
+
+        except (OSError, IOError) as e:
+            logger.error(f"Error verifying integrity for {file_path}: {e}")
+            return False
 
     def undo_operations(self, log_file: Path) -> tuple[int, int]:
         """

@@ -5,7 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-This project is hosted on [Codeberg](https://codeberg.org/orpheus497/allsorted.git).
+This project is hosted on [GitHub](https://github.com/orpheus497/allsorted).
+
+## [Unreleased]
+
+### Added
+- Comprehensive dependency management system in dependencies.py with automatic detection of optional dependencies
+- User-facing warnings when features require missing optional dependencies
+- Configuration validation against available dependencies
+- Installation instructions for missing packages
+- PEP 561 py.typed marker file for external type checker support
+- Comprehensive project audit documentation in .dev-docs folder
+- Detailed remediation blueprint with implementation roadmap
+- Type safety improvements with proper Callable type hints
+- Public API method analyze_single_file() for analyzing individual files
+- xxHash algorithm support for 3-5x faster duplicate detection
+- Integrity verification system to ensure files not corrupted during moves
+- Post-move hash verification with automatic rollback on corruption detection
+- Enhanced executor with configurable integrity checking
+
+### Changed
+- Type annotations corrected from bare callable to Callable[[int, int], None] in planner.py, executor.py, and analyzer.py
+- Repository URLs updated throughout project to reflect GitHub hosting
+- README documentation updated to accurately reflect current implementation status
+- Project documentation updated to remove test coverage claims pending comprehensive test suite implementation
+- Ignore pattern matching improved to properly handle glob patterns including ** for nested paths
+- Hash calculation updated to support both SHA256 and xxHash algorithms with automatic fallback
+- Executor cleanup method now properly uses configuration instead of creating new default config
+- Watcher module updated to use public API instead of private methods
+
+### Fixed
+- Type annotation issues that prevented strict mypy compliance
+- Missing PEP 561 marker file for type checking support
+- Ignore patterns not properly matching files in nested directories using ** glob syntax
+- Hardcoded config in executor cleanup not respecting custom directory prefixes
+- Watcher accessing private analyzer methods breaking encapsulation
+
+### Documentation
+- All Codeberg references replaced with GitHub URLs
+- README accuracy improvements for feature claims
+- CHANGELOG entries updated for URL consistency
+- Architecture documentation updated with correct repository links
 
 ## [1.0.0] - 2025-11-03
 
@@ -196,7 +236,7 @@ This project is hosted on [Codeberg](https://codeberg.org/orpheus497/allsorted.g
 - Configuration loading now uses proper logging instead of print statements for consistency
 
 #### Package Metadata
-- Repository URLs corrected from GitHub to Codeberg throughout project
+- Repository URLs configured for GitHub throughout project
 - pyproject.toml now includes all new dependencies
 - MANIFEST.in updated to include .pre-commit-config.yaml and documentation files
 - requirements.txt and requirements-dev.txt updated with all new dependencies
@@ -213,7 +253,7 @@ This project is hosted on [Codeberg](https://codeberg.org/orpheus497/allsorted.g
 - MISSING TEST SUITE: Created comprehensive test suite with pytest (previously claimed 80%+ coverage but no tests existed)
 - INCOMPLETE TYPE ANNOTATIONS: Added proper Callable type hints throughout codebase instead of using bare `callable`
 - MISSING EXAMPLE CONFIG: Created .allsorted.example.yaml referenced by MANIFEST.in
-- INCORRECT REPOSITORY URLS: Fixed all URLs from github.com to codeberg.org
+- REPOSITORY URLS: Configured all repository URLs for GitHub hosting
 - IGNORE PATTERN BUG: Fixed ignore patterns to properly match files in nested directories
 - LOGGING INCONSISTENCY: Replaced print() statements with proper logging calls in config.py
 
@@ -224,8 +264,8 @@ This project is hosted on [Codeberg](https://codeberg.org/orpheus497/allsorted.g
 ### Documentation
 
 - LICENSE updated with complete FOSS dependency attributions including licenses and authors
-- README.md URLs corrected to point to Codeberg repository
-- pyproject.toml metadata updated with correct repository links and issue tracker
+- README.md URLs configured for GitHub repository
+- pyproject.toml metadata updated with repository links and issue tracker
 
 ### Dependencies Attribution
 

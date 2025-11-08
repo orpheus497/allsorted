@@ -2,12 +2,26 @@
 File analysis and duplicate detection for allsorted.
 """
 
+import asyncio
 import hashlib
 import logging
 from collections import defaultdict
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from fnmatch import fnmatch
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Set
+
+try:
+    import xxhash
+    XXHASH_AVAILABLE = True
+except ImportError:
+    XXHASH_AVAILABLE = False
+
+try:
+    import aiofiles
+    AIOFILES_AVAILABLE = True
+except ImportError:
+    AIOFILES_AVAILABLE = False
 
 from allsorted.config import Config
 from allsorted.models import DuplicateSet, FileInfo
@@ -179,10 +193,22 @@ class FileAnalyzer:
             return True
 
         # Check ignore patterns
-        relative_path = str(path.relative_to(root_dir))
         for pattern in self.config.ignore_patterns:
-            if fnmatch(relative_path, pattern) or fnmatch(path.name, pattern):
-                return True
+            # Use Path.match() for proper glob pattern support (including **)
+            try:
+                if path.match(pattern):
+                    return True
+                # Also check just the filename for simple patterns
+                if Path(path.name).match(pattern):
+                    return True
+                # Check relative path for directory patterns
+                relative_path = path.relative_to(root_dir)
+                if relative_path.match(pattern):
+                    return True
+            except ValueError:
+                # If match fails, fall back to simple name comparison
+                if path.name == pattern:
+                    return True
 
         return False
 
@@ -219,9 +245,26 @@ class FileAnalyzer:
             logger.warning(f"Cannot access file {file_path}: {e}")
             raise
 
+    def analyze_single_file(self, file_path: Path) -> Optional[FileInfo]:
+        """
+        Analyze a single file (public API).
+
+        This is the public method for analyzing individual files, useful for
+        watch mode and other single-file operations.
+
+        Args:
+            file_path: Path to file to analyze
+
+        Returns:
+            FileInfo instance or None if file cannot be analyzed
+        """
+        return self._analyze_file(file_path)
+
     def _calculate_hash(self, file_path: Path) -> Optional[str]:
         """
-        Calculate SHA256 hash of a file.
+        Calculate hash of a file using configured algorithm.
+
+        Supports SHA256 (cryptographically secure) and xxHash (fast).
 
         Args:
             file_path: Path to file
@@ -229,7 +272,23 @@ class FileAnalyzer:
         Returns:
             Hex digest of hash or None if file cannot be read
         """
-        sha256 = hashlib.sha256()
+        algorithm = self.config.hash_algorithm
+
+        # Initialize hasher based on algorithm
+        if algorithm == "xxhash":
+            if not XXHASH_AVAILABLE:
+                logger.warning(
+                    f"xxhash not available, falling back to sha256. "
+                    f"Install with: pip install xxhash"
+                )
+                hasher = hashlib.sha256()
+            else:
+                hasher = xxhash.xxh64()
+        elif algorithm == "sha256":
+            hasher = hashlib.sha256()
+        else:
+            logger.warning(f"Unknown hash algorithm '{algorithm}', using sha256")
+            hasher = hashlib.sha256()
 
         try:
             with open(file_path, "rb") as f:
@@ -237,12 +296,132 @@ class FileAnalyzer:
                     block = f.read(self.config.hash_block_size)
                     if not block:
                         break
-                    sha256.update(block)
+                    hasher.update(block)
 
-            return sha256.hexdigest()
+            return hasher.hexdigest()
 
         except (OSError, IOError) as e:
             logger.warning(f"Cannot read file {file_path} for hashing: {e}")
+            return None
+
+    async def _calculate_hash_async(self, file_path: Path) -> Optional[str]:
+        """
+        Calculate hash of a file asynchronously using aiofiles.
+
+        This provides better performance for network paths and I/O-bound operations.
+
+        Args:
+            file_path: Path to file
+
+        Returns:
+            Hex digest of hash or None if file cannot be read
+        """
+        if not AIOFILES_AVAILABLE:
+            logger.debug("aiofiles not available, using sync hash calculation")
+            return self._calculate_hash(file_path)
+
+        algorithm = self.config.hash_algorithm
+
+        # Initialize hasher based on algorithm
+        if algorithm == "xxhash":
+            if not XXHASH_AVAILABLE:
+                hasher = hashlib.sha256()
+            else:
+                hasher = xxhash.xxh64()
+        elif algorithm == "sha256":
+            hasher = hashlib.sha256()
+        else:
+            hasher = hashlib.sha256()
+
+        try:
+            async with aiofiles.open(file_path, "rb") as f:
+                while True:
+                    block = await f.read(self.config.hash_block_size)
+                    if not block:
+                        break
+                    hasher.update(block)
+
+            return hasher.hexdigest()
+
+        except (OSError, IOError) as e:
+            logger.warning(f"Cannot read file {file_path} for async hashing: {e}")
+            return None
+
+    def _calculate_hash_parallel(self, file_paths: List[Path]) -> Dict[Path, Optional[str]]:
+        """
+        Calculate hashes for multiple files in parallel using process pool.
+
+        This utilizes multiple CPU cores for faster processing of many files.
+
+        Args:
+            file_paths: List of file paths to hash
+
+        Returns:
+            Dictionary mapping file paths to their hashes
+        """
+        if not self.config.parallel_processing or len(file_paths) < 2:
+            # Fall back to sequential processing
+            return {fp: self._calculate_hash(fp) for fp in file_paths}
+
+        max_workers = getattr(self.config, 'max_workers', 4)
+        logger.info(f"Hashing {len(file_paths)} files in parallel with {max_workers} workers")
+
+        results: Dict[Path, Optional[str]] = {}
+
+        with ProcessPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all hash jobs
+            future_to_path = {
+                executor.submit(self._hash_file_worker, fp, self.config.hash_algorithm, self.config.hash_block_size): fp
+                for fp in file_paths
+            }
+
+            # Collect results as they complete
+            for future in as_completed(future_to_path):
+                file_path = future_to_path[future]
+                try:
+                    file_hash = future.result()
+                    results[file_path] = file_hash
+                except Exception as e:
+                    logger.error(f"Parallel hashing failed for {file_path}: {e}")
+                    results[file_path] = None
+
+        logger.info(f"Parallel hashing complete: {len(results)} files processed")
+        return results
+
+    @staticmethod
+    def _hash_file_worker(file_path: Path, algorithm: str, block_size: int) -> Optional[str]:
+        """
+        Worker function for parallel hashing (must be static for multiprocessing).
+
+        Args:
+            file_path: Path to file
+            algorithm: Hash algorithm to use
+            block_size: Block size for reading
+
+        Returns:
+            Hex digest of hash or None if error
+        """
+        # Initialize hasher
+        if algorithm == "xxhash":
+            try:
+                import xxhash
+                hasher = xxhash.xxh64()
+            except ImportError:
+                hasher = hashlib.sha256()
+        else:
+            hasher = hashlib.sha256()
+
+        try:
+            with open(file_path, "rb") as f:
+                while True:
+                    block = f.read(block_size)
+                    if not block:
+                        break
+                    hasher.update(block)
+
+            return hasher.hexdigest()
+
+        except (OSError, IOError):
             return None
 
     def get_duplicate_sets(self) -> List[DuplicateSet]:

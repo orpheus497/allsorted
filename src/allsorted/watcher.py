@@ -141,7 +141,7 @@ class FileOrganizeHandler(FileSystemEventHandler):  # type: ignore[misc]
 
             # Analyze just this file
             try:
-                file_info = analyzer._analyze_file(file_path)
+                file_info = analyzer.analyze_single_file(file_path)
                 if file_info:
                     # Create operation for this file
                     self.planner._add_classification_operations(plan, [file_info])
