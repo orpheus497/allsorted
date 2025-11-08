@@ -89,7 +89,7 @@ class Reporter:
 
         # Calculate statistics
         total_size = sum(op.file_info.size_bytes for op in result.successful_operations)
-        
+
         # Count by category
         category_counts: dict[str, int] = {}
         for op in result.successful_operations:

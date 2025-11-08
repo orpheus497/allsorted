@@ -114,7 +114,7 @@ class FileAnalyzer:
                 if self._should_ignore_path(path, root_dir):
                     logger.debug(f"Ignoring directory: {path}")
                     continue
-                
+
                 # If it's a managed directory (starts with all_), scan it recursively
                 if self.config.is_managed_directory(path):
                     logger.debug(f"Scanning managed directory recursively: {path}")
@@ -154,12 +154,12 @@ class FileAnalyzer:
             List of file paths
         """
         file_paths: List[Path] = []
-        
+
         for path in managed_dir.rglob("*"):
             # Skip directories
             if path.is_dir():
                 continue
-                
+
             # Check if file should be ignored
             if path.is_file():
                 if self._should_ignore_path(path, root_dir):
@@ -174,7 +174,7 @@ class FileAnalyzer:
                     continue
 
                 file_paths.append(path)
-        
+
         return file_paths
 
     def _should_ignore_path(self, path: Path, root_dir: Path) -> bool:
