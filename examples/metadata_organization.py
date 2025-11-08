@@ -9,10 +9,11 @@ Created by orpheus497
 """
 
 from pathlib import Path
+
 from allsorted.config import Config
+from allsorted.executor import OrganizationExecutor
 from allsorted.models import OrganizationStrategy
 from allsorted.planner import OrganizationPlanner
-from allsorted.executor import OrganizationExecutor
 
 
 def organize_photos_by_date(directory_path: str, dry_run: bool = True) -> None:
@@ -32,7 +33,7 @@ def organize_photos_by_date(directory_path: str, dry_run: bool = True) -> None:
     # Use date-based organization
     config.strategy = OrganizationStrategy.BY_DATE
 
-    print(f"Organizing photos by EXIF date")
+    print("Organizing photos by EXIF date")
     print(f"Directory: {directory_path}")
     print(f"Mode: {'DRY RUN' if dry_run else 'LIVE'}")
     print()
@@ -59,7 +60,7 @@ def organize_photos_by_date(directory_path: str, dry_run: bool = True) -> None:
 
     if not dry_run:
         response = input("Proceed with organization? (y/n): ")
-        if response.lower() != 'y':
+        if response.lower() != "y":
             print("Operation cancelled")
             return
 
@@ -86,7 +87,7 @@ def organize_music_by_artist(directory_path: str, dry_run: bool = True) -> None:
     config.use_metadata = True
     config.metadata_strategy = "id3-artist"
 
-    print(f"Organizing music by ID3 artist tag")
+    print("Organizing music by ID3 artist tag")
     print(f"Directory: {directory_path}")
     print(f"Mode: {'DRY RUN' if dry_run else 'LIVE'}")
     print()
@@ -112,7 +113,7 @@ def organize_music_by_artist(directory_path: str, dry_run: bool = True) -> None:
 
     if not dry_run:
         response = input("Proceed with organization? (y/n): ")
-        if response.lower() != 'y':
+        if response.lower() != "y":
             print("Operation cancelled")
             return
 
@@ -156,5 +157,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Error: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)

@@ -29,42 +29,49 @@ XXHASH_AVAILABLE = False
 # Check dependencies on import
 try:
     import magic  # noqa: F401
+
     PYTHON_MAGIC_AVAILABLE = True
 except ImportError:
     pass
 
 try:
     from PIL import Image  # noqa: F401
+
     PILLOW_AVAILABLE = True
 except ImportError:
     pass
 
 try:
     import mutagen  # noqa: F401
+
     MUTAGEN_AVAILABLE = True
 except ImportError:
     pass
 
 try:
     from watchdog.observers import Observer  # noqa: F401
+
     WATCHDOG_AVAILABLE = True
 except ImportError:
     pass
 
 try:
     import imagehash  # noqa: F401
+
     IMAGEHASH_AVAILABLE = True
 except ImportError:
     pass
 
 try:
     import aiofiles  # noqa: F401
+
     AIOFILES_AVAILABLE = True
 except ImportError:
     pass
 
 try:
     import xxhash  # noqa: F401
+
     XXHASH_AVAILABLE = True
 except ImportError:
     pass
@@ -229,15 +236,11 @@ def warn_about_config_dependencies(config: "Config") -> None:  # type: ignore[na
 
     if missing:
         console.print("\n[bold yellow]Configuration Warning:[/bold yellow]")
-        console.print(
-            "The following features are enabled but dependencies are missing:\n"
-        )
+        console.print("The following features are enabled but dependencies are missing:\n")
         for dep in missing:
             console.print(f"  ✗ {dep}")
 
-        console.print(
-            "\n[dim]Install missing dependencies with:[/dim]"
-        )
+        console.print("\n[dim]Install missing dependencies with:[/dim]")
         for dep in missing:
             console.print(f"[dim]  pip install {dep}[/dim]")
         console.print()

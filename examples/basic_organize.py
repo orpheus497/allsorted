@@ -9,9 +9,10 @@ Created by orpheus497
 """
 
 from pathlib import Path
+
 from allsorted.config import Config
-from allsorted.planner import OrganizationPlanner
 from allsorted.executor import OrganizationExecutor
+from allsorted.planner import OrganizationPlanner
 from allsorted.validator import OperationValidator
 
 

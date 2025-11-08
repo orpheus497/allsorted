@@ -10,7 +10,7 @@ from typing import Optional
 import click
 from rich.console import Console
 from rich.logging import RichHandler
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeRemainingColumn
+from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn, TimeRemainingColumn
 
 from allsorted import __version__
 from allsorted.config import Config, get_default_config_path, load_config, save_config
@@ -205,6 +205,7 @@ def organize(
             report_dir = root_dir / ".devAI"
             report_dir.mkdir(exist_ok=True)
             from datetime import datetime
+
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             text_report_path = report_dir / f"report_{timestamp}.txt"
             reporter.save_text_report(result, text_report_path)
@@ -278,7 +279,7 @@ def undo(log_file: str, dry_run: bool) -> None:
         executor = OrganizationExecutor(dry_run=False, log_operations=False)
         successful, failed = executor.undo_operations(log_path)
 
-        console.print(f"\n[green]Undo complete[/green]")
+        console.print("\n[green]Undo complete[/green]")
         console.print(f"  Successful: {successful}")
         console.print(f"  Failed: {failed}")
 
@@ -393,6 +394,7 @@ def config_init(path: Optional[str], wizard: bool) -> None:
         if wizard:
             # Run interactive wizard
             from allsorted.wizard import run_first_time_wizard
+
             cfg = run_first_time_wizard()
         else:
             # Create default config
@@ -401,7 +403,9 @@ def config_init(path: Optional[str], wizard: bool) -> None:
 
             console.print(f"[green]Configuration file created:[/green] {config_path}")
             console.print("\nEdit this file to customize allsorted behavior.")
-            console.print("Or run: [cyan]allsorted config init --wizard[/cyan] for interactive setup")
+            console.print(
+                "Or run: [cyan]allsorted config init --wizard[/cyan] for interactive setup"
+            )
 
     except Exception as e:
         console.print(f"[bold red]Error:[/bold red] {e}")
@@ -434,7 +438,9 @@ def completion(shell: Optional[str]) -> None:
         console.print("[bold cyan]Shell Completion Setup[/bold cyan]\n")
         console.print("Generate completion scripts for your shell:\n")
         console.print("[yellow]Bash:[/yellow]")
-        console.print("  allsorted completion bash > ~/.local/share/bash-completion/completions/allsorted")
+        console.print(
+            "  allsorted completion bash > ~/.local/share/bash-completion/completions/allsorted"
+        )
         console.print("  source ~/.bashrc\n")
         console.print("[yellow]Zsh:[/yellow]")
         console.print("  allsorted completion zsh > ~/.zsh/completion/_allsorted")

@@ -9,29 +9,6 @@ This project is hosted on [GitHub](https://github.com/orpheus497/allsorted).
 
 ## [Unreleased]
 
-### Added
-- Comprehensive project audit documentation in .dev-docs/01-Initial_Audit.md
-- Complete remediation blueprint in .dev-docs/02-Remediation_Blueprint.md
-- Example scripts demonstrating library usage (examples/basic_organize.py, examples/custom_rules.py, examples/metadata_organization.py)
-- Example scripts README with usage instructions
-- Comprehensive testing guide documentation (docs/TESTING.md)
-- Development guide with setup instructions and best practices (docs/DEVELOPMENT.md)
-- Convenience scripts for running tests (scripts/run_tests.sh with coverage, verbose, and fast modes)
-- Convenience scripts for running quality checks (scripts/run_checks.sh with auto-fix and fast modes)
-
-### Fixed
-- Version consistency between package metadata and CHANGELOG (updated to 1.1.0)
-- PEP 561 py.typed marker file now properly created and included
-- LICENSE file updated with complete FOSS dependency attributions for all runtime dependencies (python-magic, Pillow, mutagen, imagehash, aiofiles, xxhash, watchdog, typing-extensions)
-
-### Documentation
-- .dev-docs/ directory structure created for AI-generated documentation
-- .gitignore already properly configured to exclude .dev-docs/ from version control
-- Complete attribution to all FOSS dependencies with licenses and authors in LICENSE
-- Testing guide with comprehensive examples and best practices
-- Development guide covering setup, workflow, and contribution guidelines
-- Example scripts with detailed comments and usage instructions
-
 ## [1.1.0] - 2025-11-08
 
 ### Added

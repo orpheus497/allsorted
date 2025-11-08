@@ -2,7 +2,6 @@
 Configuration management for allsorted.
 """
 
-import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -10,7 +9,6 @@ from typing import Any, Dict, List, Optional
 import yaml
 
 from allsorted.models import ConflictResolution, OrganizationStrategy
-
 
 # Default classification rules based on file extensions
 DEFAULT_CLASSIFICATION_RULES: Dict[str, Dict[str, List[str]]] = {
@@ -28,7 +26,18 @@ DEFAULT_CLASSIFICATION_RULES: Dict[str, Dict[str, List[str]]] = {
         "VoiceMemos": [".amr", ".3ga"],
     },
     "Pics": {
-        "Photos": [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".heic", ".webp", ".avif", ".jxl"],
+        "Photos": [
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".gif",
+            ".bmp",
+            ".tiff",
+            ".heic",
+            ".webp",
+            ".avif",
+            ".jxl",
+        ],
         "Vector": [".svg", ".ai", ".eps"],
         "Raw": [".cr2", ".nef", ".dng", ".arw", ".raw"],
         "Icons": [".ico"],
@@ -106,7 +115,14 @@ class Config:
     # File handling
     follow_symlinks: bool = False
     ignore_hidden: bool = True
-    ignore_patterns: List[str] = field(default_factory=lambda: ["**/.devAI/**", "**/.git/**", "**/node_modules/**", "**/__pycache__/**"])
+    ignore_patterns: List[str] = field(
+        default_factory=lambda: [
+            "**/.devAI/**",
+            "**/.git/**",
+            "**/node_modules/**",
+            "**/__pycache__/**",
+        ]
+    )
 
     # Duplicate handling
     detect_duplicates: bool = True
@@ -153,12 +169,14 @@ class Config:
     auto_extract: bool = False  # Auto-extract archives before organizing
 
     # Size thresholds for by-size strategy (in MB)
-    size_thresholds: Dict[str, int] = field(default_factory=lambda: {
-        "small_max": 1,
-        "medium_min": 1,
-        "medium_max": 100,
-        "large_min": 100,
-    })
+    size_thresholds: Dict[str, int] = field(
+        default_factory=lambda: {
+            "small_max": 1,
+            "medium_min": 1,
+            "medium_max": 100,
+            "large_min": 100,
+        }
+    )
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Config":
@@ -295,13 +313,14 @@ def load_config(config_path: Optional[Path] = None) -> Config:
         return default_config
 
     try:
-        with open(config_path, "r") as f:
+        with open(config_path) as f:
             data = yaml.safe_load(f)
             if data is None:
                 return default_config
             return Config.from_dict(data)
     except (yaml.YAMLError, OSError, ValueError) as e:
         import logging
+
         logger = logging.getLogger(__name__)
         logger.warning(f"Could not load config from {config_path}: {e}")
         logger.info("Using default configuration.")

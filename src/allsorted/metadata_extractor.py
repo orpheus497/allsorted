@@ -11,7 +11,6 @@ Dependencies:
     - mutagen (GPL-2.0 License) by Joe Wreschnig, Michael Urman
 """
 
-import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -19,6 +18,7 @@ from typing import Any, Dict, Optional
 try:
     from PIL import Image
     from PIL.ExifTags import TAGS
+
     PIL_AVAILABLE = True
 except ImportError:
     PIL_AVAILABLE = False
@@ -26,8 +26,9 @@ except ImportError:
 try:
     from mutagen import File as MutagenFile
     from mutagen.easyid3 import EasyID3
-    from mutagen.mp3 import MP3
     from mutagen.flac import FLAC
+    from mutagen.mp3 import MP3
+
     MUTAGEN_AVAILABLE = True
 except ImportError:
     MUTAGEN_AVAILABLE = False
@@ -101,9 +102,7 @@ class MetadataExtractor:
                     # Date/time tags
                     if tag_name == "DateTime":
                         try:
-                            metadata["date_taken"] = datetime.strptime(
-                                value, "%Y:%m:%d %H:%M:%S"
-                            )
+                            metadata["date_taken"] = datetime.strptime(value, "%Y:%m:%d %H:%M:%S")
                         except ValueError:
                             pass
                     elif tag_name == "DateTimeOriginal":

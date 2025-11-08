@@ -9,9 +9,10 @@ Created by orpheus497
 """
 
 from pathlib import Path
+
 from allsorted.config import Config
-from allsorted.planner import OrganizationPlanner
 from allsorted.executor import OrganizationExecutor
+from allsorted.planner import OrganizationPlanner
 
 
 def organize_with_custom_rules(directory_path: str) -> None:
@@ -26,37 +27,31 @@ def organize_with_custom_rules(directory_path: str) -> None:
 
     # Add custom rules for data science files
     config.add_classification_rule(
-        category="Code",
-        subcategory="DataScience",
-        extensions=[".ipynb", ".rmd", ".qmd", ".r"]
+        category="Code", subcategory="DataScience", extensions=[".ipynb", ".rmd", ".qmd", ".r"]
     )
 
     # Add custom rules for CAD files
     config.add_classification_rule(
-        category="Docs",
-        subcategory="CAD",
-        extensions=[".dwg", ".dxf", ".stl", ".obj", ".fbx"]
+        category="Docs", subcategory="CAD", extensions=[".dwg", ".dxf", ".stl", ".obj", ".fbx"]
     )
 
     # Add custom rules for game development
     config.add_classification_rule(
         category="Code",
         subcategory="GameDev",
-        extensions=[".unity", ".unitypackage", ".prefab", ".mat"]
+        extensions=[".unity", ".unitypackage", ".prefab", ".mat"],
     )
 
     # Add custom rules for blockchain/crypto
     config.add_classification_rule(
-        category="Code",
-        subcategory="Blockchain",
-        extensions=[".sol", ".vy"]  # Solidity and Vyper
+        category="Code", subcategory="Blockchain", extensions=[".sol", ".vy"]  # Solidity and Vyper
     )
 
     # Add custom rules for machine learning models
     config.add_classification_rule(
         category="System",
         subcategory="MLModels",
-        extensions=[".h5", ".keras", ".pkl", ".joblib", ".model"]
+        extensions=[".h5", ".keras", ".pkl", ".joblib", ".model"],
     )
 
     print("Custom classification rules added:")
@@ -105,7 +100,7 @@ def organize_with_custom_rules(directory_path: str) -> None:
 
     # Ask for confirmation
     response = input("\nProceed with organization? (y/n): ")
-    if response.lower() != 'y':
+    if response.lower() != "y":
         print("Operation cancelled")
         return
 
@@ -113,7 +108,7 @@ def organize_with_custom_rules(directory_path: str) -> None:
     executor = OrganizationExecutor(dry_run=False, log_operations=True)
     result = executor.execute_plan(plan)
 
-    print(f"\nOrganization complete!")
+    print("\nOrganization complete!")
     print(f"Files moved: {result.files_moved}")
     print(f"Success rate: {result.success_rate:.1f}%")
 
@@ -138,5 +133,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Error: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)

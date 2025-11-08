@@ -12,12 +12,12 @@ __author__ = "orpheus497"
 __license__ = "MIT"
 
 from allsorted.models import (
-    FileInfo,
+    ConflictResolution,
     DuplicateSet,
+    FileInfo,
     MoveOperation,
     OrganizationPlan,
     OrganizationResult,
-    ConflictResolution,
 )
 
 __all__ = [

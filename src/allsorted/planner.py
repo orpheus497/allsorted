@@ -118,7 +118,9 @@ class OrganizationPlanner:
 
                 # Check if source and destination are the same
                 if file_info.path.resolve() == destination.resolve():
-                    logger.debug(f"Skipping duplicate already in correct location: {file_info.path}")
+                    logger.debug(
+                        f"Skipping duplicate already in correct location: {file_info.path}"
+                    )
                     continue
 
                 operation = MoveOperation(
@@ -131,9 +133,7 @@ class OrganizationPlanner:
 
                 plan.add_operation(operation)
 
-    def _add_classification_operations(
-        self, plan: OrganizationPlan, files: List[FileInfo]
-    ) -> None:
+    def _add_classification_operations(self, plan: OrganizationPlan, files: List[FileInfo]) -> None:
         """
         Add classification operations for files to the plan.
 
@@ -161,9 +161,7 @@ class OrganizationPlanner:
 
             plan.add_operation(operation)
 
-    def _add_directory_operations(
-        self, plan: OrganizationPlan, directories: List[Path]
-    ) -> None:
+    def _add_directory_operations(self, plan: OrganizationPlan, directories: List[Path]) -> None:
         """
         Add operations to move directories to the all_Folders directory.
 
@@ -204,7 +202,6 @@ class OrganizationPlanner:
 
             plan.add_directory_operation(operation)
             logger.debug(f"Added directory operation: {directory} -> {destination}")
-
 
     def optimize_plan(self, plan: OrganizationPlan) -> OrganizationPlan:
         """

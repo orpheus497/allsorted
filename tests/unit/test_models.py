@@ -7,11 +7,8 @@ Created by orpheus497
 from datetime import datetime
 from pathlib import Path
 
-import pytest
-
 from allsorted.models import (
     ConflictResolution,
-    DirectoryMoveOperation,
     DuplicateSet,
     FileInfo,
     MoveOperation,

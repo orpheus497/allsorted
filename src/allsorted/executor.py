@@ -165,7 +165,9 @@ class OrganizationExecutor:
                     if not self._verify_file_integrity(source_hash, final_destination):
                         # Integrity check failed - this is serious
                         logger.error(f"Integrity verification failed for {final_destination}")
-                        raise ExecutionError(f"Integrity verification failed after move: {final_destination}")
+                        raise ExecutionError(
+                            f"Integrity verification failed after move: {final_destination}"
+                        )
 
                 # Log operation for undo capability
                 if self.log_operations:
@@ -178,9 +180,7 @@ class OrganizationExecutor:
         operation.destination = final_destination
         result.successful_operations.append(operation)
 
-    def _execute_directory_operation(
-        self, operation, result: OrganizationResult
-    ) -> None:
+    def _execute_directory_operation(self, operation, result: OrganizationResult) -> None:
         """
         Execute a single directory move operation.
 
@@ -281,11 +281,12 @@ class OrganizationExecutor:
         config = self.config
         if config is None:
             # Try to get from plan
-            if hasattr(result.plan, 'config'):
+            if hasattr(result.plan, "config"):
                 config = result.plan.config
             else:
                 # Fall back to default config
                 from allsorted.config import Config
+
                 config = Config()
 
         # Walk from bottom up to delete nested empty dirs first
@@ -369,7 +370,7 @@ class OrganizationExecutor:
 
         try:
             # Read existing log
-            with open(self.operation_log_path, "r") as f:
+            with open(self.operation_log_path) as f:
                 log_data = json.load(f)
 
             # Add new operation
@@ -398,7 +399,7 @@ class OrganizationExecutor:
         config = self.config
         if config is None:
             return False
-        return getattr(config, 'verify_integrity', False)
+        return getattr(config, "verify_integrity", False)
 
     def _verify_file_integrity(self, expected_hash: str, file_path: Path) -> bool:
         """
@@ -418,19 +419,21 @@ class OrganizationExecutor:
         try:
             # Recalculate hash using same algorithm
             import hashlib
+
             config = self.config
-            algorithm = getattr(config, 'hash_algorithm', 'sha256') if config else 'sha256'
+            algorithm = getattr(config, "hash_algorithm", "sha256") if config else "sha256"
 
             if algorithm == "xxhash":
                 try:
                     import xxhash
+
                     hasher = xxhash.xxh64()
                 except ImportError:
                     hasher = hashlib.sha256()
             else:
                 hasher = hashlib.sha256()
 
-            block_size = getattr(config, 'hash_block_size', 65536) if config else 65536
+            block_size = getattr(config, "hash_block_size", 65536) if config else 65536
 
             with open(file_path, "rb") as f:
                 while True:
@@ -452,7 +455,7 @@ class OrganizationExecutor:
                 )
                 return False
 
-        except (OSError, IOError) as e:
+        except OSError as e:
             logger.error(f"Error verifying integrity for {file_path}: {e}")
             return False
 
@@ -476,7 +479,7 @@ class OrganizationExecutor:
         logger.info(f"Undoing operations from: {log_file}")
 
         try:
-            with open(log_file, "r") as f:
+            with open(log_file) as f:
                 log_data = json.load(f)
         except (OSError, json.JSONDecodeError) as e:
             raise ExecutionError(f"Cannot read operation log: {e}") from e
