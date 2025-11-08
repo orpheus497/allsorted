@@ -7,7 +7,7 @@ import logging
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
 from allsorted.models import (
     ConflictResolution,
@@ -44,7 +44,7 @@ class OrganizationExecutor:
     def execute_plan(
         self,
         plan: OrganizationPlan,
-        progress_callback: Optional[callable] = None,
+        progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> OrganizationResult:
         """
         Execute an organization plan.

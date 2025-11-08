@@ -4,7 +4,7 @@ Organization plan generation for allsorted.
 
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 from allsorted.analyzer import FileAnalyzer
 from allsorted.classifier import FileClassifier
@@ -39,7 +39,7 @@ class OrganizationPlanner:
     def create_plan(
         self,
         root_dir: Path,
-        progress_callback: Optional[callable] = None,
+        progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> OrganizationPlan:
         """
         Create a complete organization plan for a directory.
