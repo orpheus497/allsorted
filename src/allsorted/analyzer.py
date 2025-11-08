@@ -2,23 +2,23 @@
 File analysis and duplicate detection for allsorted.
 """
 
-import asyncio
 import hashlib
 import logging
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from fnmatch import fnmatch
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Set
+from typing import Callable, Dict, List, Optional
 
 try:
     import xxhash
+
     XXHASH_AVAILABLE = True
 except ImportError:
     XXHASH_AVAILABLE = False
 
 try:
     import aiofiles
+
     AIOFILES_AVAILABLE = True
 except ImportError:
     AIOFILES_AVAILABLE = False
@@ -278,8 +278,8 @@ class FileAnalyzer:
         if algorithm == "xxhash":
             if not XXHASH_AVAILABLE:
                 logger.warning(
-                    f"xxhash not available, falling back to sha256. "
-                    f"Install with: pip install xxhash"
+                    "xxhash not available, falling back to sha256. "
+                    "Install with: pip install xxhash"
                 )
                 hasher = hashlib.sha256()
             else:
@@ -300,7 +300,7 @@ class FileAnalyzer:
 
             return hasher.hexdigest()
 
-        except (OSError, IOError) as e:
+        except OSError as e:
             logger.warning(f"Cannot read file {file_path} for hashing: {e}")
             return None
 
@@ -343,7 +343,7 @@ class FileAnalyzer:
 
             return hasher.hexdigest()
 
-        except (OSError, IOError) as e:
+        except OSError as e:
             logger.warning(f"Cannot read file {file_path} for async hashing: {e}")
             return None
 
@@ -363,7 +363,7 @@ class FileAnalyzer:
             # Fall back to sequential processing
             return {fp: self._calculate_hash(fp) for fp in file_paths}
 
-        max_workers = getattr(self.config, 'max_workers', 4)
+        max_workers = getattr(self.config, "max_workers", 4)
         logger.info(f"Hashing {len(file_paths)} files in parallel with {max_workers} workers")
 
         results: Dict[Path, Optional[str]] = {}
@@ -371,7 +371,12 @@ class FileAnalyzer:
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
             # Submit all hash jobs
             future_to_path = {
-                executor.submit(self._hash_file_worker, fp, self.config.hash_algorithm, self.config.hash_block_size): fp
+                executor.submit(
+                    self._hash_file_worker,
+                    fp,
+                    self.config.hash_algorithm,
+                    self.config.hash_block_size,
+                ): fp
                 for fp in file_paths
             }
 
@@ -405,6 +410,7 @@ class FileAnalyzer:
         if algorithm == "xxhash":
             try:
                 import xxhash
+
                 hasher = xxhash.xxh64()
             except ImportError:
                 hasher = hashlib.sha256()
@@ -421,7 +427,7 @@ class FileAnalyzer:
 
             return hasher.hexdigest()
 
-        except (OSError, IOError):
+        except OSError:
             return None
 
     def get_duplicate_sets(self) -> List[DuplicateSet]:

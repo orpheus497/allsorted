@@ -4,7 +4,7 @@ Validation and safety checks for allsorted operations.
 
 import logging
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 from allsorted.models import MoveOperation, OrganizationPlan
 from allsorted.utils import get_available_space

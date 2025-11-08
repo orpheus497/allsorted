@@ -7,17 +7,17 @@ intelligent classification, duplicate detection, and organized file management.
 Created by orpheus497
 """
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __author__ = "orpheus497"
 __license__ = "MIT"
 
 from allsorted.models import (
-    FileInfo,
+    ConflictResolution,
     DuplicateSet,
+    FileInfo,
     MoveOperation,
     OrganizationPlan,
     OrganizationResult,
-    ConflictResolution,
 )
 
 __all__ = [

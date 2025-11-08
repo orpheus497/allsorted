@@ -14,8 +14,13 @@ from rich.panel import Panel
 from rich.prompt import Confirm, IntPrompt, Prompt
 from rich.table import Table
 
-from allsorted.config import Config, OrganizationStrategy, ConflictResolution, save_config, get_default_config_path
-
+from allsorted.config import (
+    Config,
+    ConflictResolution,
+    OrganizationStrategy,
+    get_default_config_path,
+    save_config,
+)
 
 console = Console()
 
@@ -30,12 +35,14 @@ def run_first_time_wizard() -> Config:
         Configured Config object
     """
     console.print()
-    console.print(Panel.fit(
-        "[bold cyan]Welcome to allsorted![/bold cyan]\n\n"
-        "Let's set up your preferences through a few quick questions.",
-        title="🎯 First-Time Setup",
-        border_style="cyan"
-    ))
+    console.print(
+        Panel.fit(
+            "[bold cyan]Welcome to allsorted![/bold cyan]\n\n"
+            "Let's set up your preferences through a few quick questions.",
+            title="🎯 First-Time Setup",
+            border_style="cyan",
+        )
+    )
     console.print()
 
     config = Config()
@@ -59,13 +66,15 @@ def run_first_time_wizard() -> Config:
     _save_configuration(config)
 
     console.print()
-    console.print(Panel.fit(
-        "[bold green]✓ Configuration complete![/bold green]\n\n"
-        "You can change these settings anytime by editing your config file\n"
-        "or running: [cyan]allsorted config init[/cyan]",
-        title="🎉 All Set!",
-        border_style="green"
-    ))
+    console.print(
+        Panel.fit(
+            "[bold green]✓ Configuration complete![/bold green]\n\n"
+            "You can change these settings anytime by editing your config file\n"
+            "or running: [cyan]allsorted config init[/cyan]",
+            title="🎉 All Set!",
+            border_style="green",
+        )
+    )
     console.print()
 
     return config
@@ -91,7 +100,7 @@ def _configure_strategy(config: Config) -> None:
     strategy = Prompt.ask(
         "Choose strategy",
         choices=["by-extension", "by-date", "by-size", "hybrid"],
-        default="by-extension"
+        default="by-extension",
     )
 
     config.strategy = OrganizationStrategy(strategy)
@@ -102,17 +111,13 @@ def _configure_duplicates(config: Config) -> None:
     """Configure duplicate detection settings."""
     console.print("[bold]Duplicate Detection[/bold]")
 
-    config.detect_duplicates = Confirm.ask(
-        "Enable duplicate file detection?",
-        default=True
-    )
+    config.detect_duplicates = Confirm.ask("Enable duplicate file detection?", default=True)
 
     if config.detect_duplicates:
         console.print("[green]✓[/green] Duplicate detection enabled")
 
         config.isolate_duplicates = Confirm.ask(
-            "  Move duplicates to separate folder?",
-            default=True
+            "  Move duplicates to separate folder?", default=True
         )
 
         if config.isolate_duplicates:
@@ -142,19 +147,14 @@ def _configure_file_handling(config: Config) -> None:
     console.print()
 
     resolution = Prompt.ask(
-        "Choose conflict resolution",
-        choices=["rename", "skip", "overwrite"],
-        default="rename"
+        "Choose conflict resolution", choices=["rename", "skip", "overwrite"], default="rename"
     )
 
     config.conflict_resolution = ConflictResolution(resolution)
     console.print(f"[green]✓[/green] Conflicts will be handled by: [cyan]{resolution}[/cyan]")
 
     # Hidden files
-    config.ignore_hidden = Confirm.ask(
-        "Ignore hidden files (starting with .)?",
-        default=True
-    )
+    config.ignore_hidden = Confirm.ask("Ignore hidden files (starting with .)?", default=True)
 
     console.print()
 
@@ -165,11 +165,7 @@ def _configure_performance(config: Config) -> None:
     console.print("These options can speed up processing for large directories.\n")
 
     # Hash algorithm
-    algorithm = Prompt.ask(
-        "Hash algorithm",
-        choices=["sha256", "xxhash"],
-        default="sha256"
-    )
+    algorithm = Prompt.ask("Hash algorithm", choices=["sha256", "xxhash"], default="sha256")
 
     config.hash_algorithm = algorithm
 
@@ -180,23 +176,16 @@ def _configure_performance(config: Config) -> None:
 
     # Parallel processing
     config.parallel_processing = Confirm.ask(
-        "Enable parallel processing (multi-core)?",
-        default=False
+        "Enable parallel processing (multi-core)?", default=False
     )
 
     if config.parallel_processing:
-        max_workers = IntPrompt.ask(
-            "  Number of CPU cores to use",
-            default=4
-        )
+        max_workers = IntPrompt.ask("  Number of CPU cores to use", default=4)
         config.max_workers = max_workers
         console.print(f"[green]✓[/green] Will use {max_workers} CPU cores")
 
     # Async I/O
-    config.use_async = Confirm.ask(
-        "Enable async I/O (better for network paths)?",
-        default=False
-    )
+    config.use_async = Confirm.ask("Enable async I/O (better for network paths)?", default=False)
 
     if config.use_async:
         console.print("[green]✓[/green] Async I/O enabled")
@@ -209,13 +198,11 @@ def _configure_safety(config: Config) -> None:
     console.print("[bold]Safety Options[/bold]")
 
     config.require_confirmation = Confirm.ask(
-        "Require confirmation before organizing?",
-        default=False
+        "Require confirmation before organizing?", default=False
     )
 
     config.verify_integrity = Confirm.ask(
-        "Verify file integrity after moves (slower but safer)?",
-        default=False
+        "Verify file integrity after moves (slower but safer)?", default=False
     )
 
     if config.verify_integrity:
@@ -250,19 +237,21 @@ def _save_configuration(config: Config) -> None:
 def show_quick_start() -> None:
     """Show quick start guide after wizard."""
     console.print()
-    console.print(Panel(
-        "[bold cyan]Quick Start Commands[/bold cyan]\n\n"
-        "[yellow]Preview what would be organized:[/yellow]\n"
-        "  [cyan]allsorted organize --dry-run[/cyan]\n\n"
-        "[yellow]Organize current directory:[/yellow]\n"
-        "  [cyan]allsorted organize[/cyan]\n\n"
-        "[yellow]Organize specific directory:[/yellow]\n"
-        "  [cyan]allsorted organize /path/to/folder[/cyan]\n\n"
-        "[yellow]View configuration:[/yellow]\n"
-        "  [cyan]allsorted config show[/cyan]",
-        title="📚 Next Steps",
-        border_style="cyan"
-    ))
+    console.print(
+        Panel(
+            "[bold cyan]Quick Start Commands[/bold cyan]\n\n"
+            "[yellow]Preview what would be organized:[/yellow]\n"
+            "  [cyan]allsorted organize --dry-run[/cyan]\n\n"
+            "[yellow]Organize current directory:[/yellow]\n"
+            "  [cyan]allsorted organize[/cyan]\n\n"
+            "[yellow]Organize specific directory:[/yellow]\n"
+            "  [cyan]allsorted organize /path/to/folder[/cyan]\n\n"
+            "[yellow]View configuration:[/yellow]\n"
+            "  [cyan]allsorted config show[/cyan]",
+            title="📚 Next Steps",
+            border_style="cyan",
+        )
+    )
 
 
 def run_quick_setup() -> Optional[Config]:
@@ -273,7 +262,9 @@ def run_quick_setup() -> Optional[Config]:
         Config object or None if user cancels
     """
     console.print()
-    console.print("[bold cyan]Quick Setup[/bold cyan] (or run [cyan]allsorted config init[/cyan] for full wizard)\n")
+    console.print(
+        "[bold cyan]Quick Setup[/bold cyan] (or run [cyan]allsorted config init[/cyan] for full wizard)\n"
+    )
 
     if not Confirm.ask("Set up allsorted now?", default=True):
         return None
@@ -281,12 +272,9 @@ def run_quick_setup() -> Optional[Config]:
     config = Config()
 
     # Just ask the essentials
-    config.detect_duplicates = Confirm.ask(
-        "Enable duplicate detection?",
-        default=True
-    )
+    config.detect_duplicates = Confirm.ask("Enable duplicate detection?", default=True)
 
-    console.print(f"\n[green]✓[/green] Quick setup complete! Using defaults for other options.")
+    console.print("\n[green]✓[/green] Quick setup complete! Using defaults for other options.")
 
     # Save
     try:

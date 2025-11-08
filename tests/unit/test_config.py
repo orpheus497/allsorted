@@ -4,18 +4,13 @@ Tests for configuration management.
 Created by orpheus497
 """
 
-import tempfile
 from pathlib import Path
-
-import pytest
-import yaml
 
 from allsorted.config import (
     Config,
+    get_default_config_path,
     load_config,
     save_config,
-    get_default_config_path,
-    DEFAULT_CLASSIFICATION_RULES,
 )
 from allsorted.models import ConflictResolution, OrganizationStrategy
 

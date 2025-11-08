@@ -10,8 +10,6 @@ from typing import Optional
 
 from rich.console import Console
 from rich.table import Table
-from rich.panel import Panel
-from rich.text import Text
 
 from allsorted.models import OrganizationResult
 from allsorted.utils import format_duration, format_size
@@ -46,7 +44,11 @@ class Reporter:
         table.add_column("Value", style="bold")
 
         # Add rows
-        status = "DRY RUN ✓" if result.dry_run else "COMPLETED ✓" if result.is_complete_success else "COMPLETED WITH ERRORS"
+        status = (
+            "DRY RUN ✓"
+            if result.dry_run
+            else "COMPLETED ✓" if result.is_complete_success else "COMPLETED WITH ERRORS"
+        )
         table.add_row("Status", status)
         table.add_row("Root Directory", str(plan.root_dir))
         table.add_row("Total Files Processed", str(result.files_moved))
@@ -57,10 +59,7 @@ class Reporter:
         if plan.duplicate_sets:
             table.add_row("Duplicate Sets Found", str(len(plan.duplicate_sets)))
             table.add_row("Duplicate Files", str(plan.total_duplicates))
-            table.add_row(
-                "Space Recoverable",
-                format_size(plan.space_recoverable)
-            )
+            table.add_row("Space Recoverable", format_size(plan.space_recoverable))
 
         if result.directories_created:
             table.add_row("Directories Created", str(len(result.directories_created)))
@@ -116,7 +115,9 @@ class Reporter:
 
         if plan.duplicate_sets:
             duplicate_size = sum(ds.space_wasted for ds in plan.duplicate_sets)
-            self.console.print(f"[bold]Space Wasted by Duplicates:[/bold] {format_size(duplicate_size)}")
+            self.console.print(
+                f"[bold]Space Wasted by Duplicates:[/bold] {format_size(duplicate_size)}"
+            )
 
     def save_json_report(self, result: OrganizationResult, output_path: Path) -> None:
         """
@@ -226,20 +227,24 @@ class Reporter:
         ]
 
         if plan.duplicate_sets:
-            lines.extend([
-                "DUPLICATES",
-                "-" * 80,
-                f"Duplicate Sets: {len(plan.duplicate_sets)}",
-                f"Duplicate Files: {plan.total_duplicates}",
-                f"Space Recoverable: {format_size(plan.space_recoverable)}",
-                "",
-            ])
+            lines.extend(
+                [
+                    "DUPLICATES",
+                    "-" * 80,
+                    f"Duplicate Sets: {len(plan.duplicate_sets)}",
+                    f"Duplicate Files: {plan.total_duplicates}",
+                    f"Space Recoverable: {format_size(plan.space_recoverable)}",
+                    "",
+                ]
+            )
 
         if result.directories_created:
-            lines.extend([
-                "DIRECTORIES CREATED",
-                "-" * 80,
-            ])
+            lines.extend(
+                [
+                    "DIRECTORIES CREATED",
+                    "-" * 80,
+                ]
+            )
             for directory in result.directories_created[:50]:
                 lines.append(f"  + {directory}")
             if len(result.directories_created) > 50:
@@ -247,20 +252,24 @@ class Reporter:
             lines.append("")
 
         if result.failed_operations:
-            lines.extend([
-                "ERRORS",
-                "-" * 80,
-            ])
+            lines.extend(
+                [
+                    "ERRORS",
+                    "-" * 80,
+                ]
+            )
             for op, error in result.failed_operations:
                 lines.append(f"  ❌ {op.source}")
                 lines.append(f"     Error: {error}")
             lines.append("")
 
-        lines.extend([
-            "=" * 80,
-            "END OF REPORT",
-            "=" * 80,
-        ])
+        lines.extend(
+            [
+                "=" * 80,
+                "END OF REPORT",
+                "=" * 80,
+            ]
+        )
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         with open(output_path, "w") as f:

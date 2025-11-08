@@ -10,12 +10,12 @@ Dependencies:
     - python-magic (MIT License) by Adam Hupp
 """
 
-import logging
 from pathlib import Path
 from typing import Optional, Tuple
 
 try:
     import magic
+
     MAGIC_AVAILABLE = True
 except ImportError:
     MAGIC_AVAILABLE = False
@@ -101,9 +101,7 @@ class MagicClassifier:
 
         # Audio files
         elif major == "audio":
-            if minor in ("mpeg", "mp3", "flac", "ogg", "wav", "x-wav"):
-                return ("Audio", "Music")
-            elif minor in ("x-m4a", "mp4", "aac"):
+            if minor in ("mpeg", "mp3", "flac", "ogg", "wav", "x-wav") or minor in ("x-m4a", "mp4", "aac"):
                 return ("Audio", "Music")
             elif minor == "x-m4b":
                 return ("Audio", "Podcasts")
@@ -125,9 +123,16 @@ class MagicClassifier:
                 return ("Docs", "PDFs")
             elif minor in ("msword", "vnd.openxmlformats-officedocument.wordprocessingml.document"):
                 return ("Docs", "Word")
-            elif minor in ("vnd.ms-excel", "vnd.openxmlformats-officedocument.spreadsheetml.sheet", "vnd.oasis.opendocument.spreadsheet"):
+            elif minor in (
+                "vnd.ms-excel",
+                "vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "vnd.oasis.opendocument.spreadsheet",
+            ):
                 return ("Docs", "Sheets")
-            elif minor in ("vnd.ms-powerpoint", "vnd.openxmlformats-officedocument.presentationml.presentation"):
+            elif minor in (
+                "vnd.ms-powerpoint",
+                "vnd.openxmlformats-officedocument.presentationml.presentation",
+            ):
                 return ("Docs", "Presentations")
             elif minor == "epub+zip":
                 return ("Docs", "Ebooks")
@@ -137,9 +142,7 @@ class MagicClassifier:
                 return ("Archives", "Disk")
             elif minor in ("x-msdownload", "x-dosexec", "x-msi"):
                 return ("Programs", "Windows")
-            elif minor in ("x-debian-package", "x-rpm"):
-                return ("Programs", "Linux")
-            elif minor in ("x-executable", "x-sharedlib"):
+            elif minor in ("x-debian-package", "x-rpm") or minor in ("x-executable", "x-sharedlib"):
                 return ("Programs", "Linux")
             elif minor == "x-sqlite3":
                 return ("Apps", "Database")

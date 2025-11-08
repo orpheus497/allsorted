@@ -9,14 +9,14 @@ Dependencies:
     - watchdog (Apache-2.0 License) by Yesudeep Mangalapilly
 """
 
-import logging
 import time
 from pathlib import Path
 from typing import Callable, Optional
 
 try:
+    from watchdog.events import FileCreatedEvent, FileModifiedEvent, FileSystemEventHandler
     from watchdog.observers import Observer
-    from watchdog.events import FileSystemEventHandler, FileCreatedEvent, FileModifiedEvent
+
     WATCHDOG_AVAILABLE = True
 except ImportError:
     WATCHDOG_AVAILABLE = False
@@ -173,9 +173,7 @@ class DirectoryWatcher:
             config: Configuration instance
         """
         if not WATCHDOG_AVAILABLE:
-            raise RuntimeError(
-                "watchdog library not available. Install with: pip install watchdog"
-            )
+            raise RuntimeError("watchdog library not available. Install with: pip install watchdog")
 
         self.root_dir = root_dir
         self.config = config
@@ -193,14 +191,14 @@ class DirectoryWatcher:
             logger.warning("Watcher already running")
             return
 
-        self.event_handler = FileOrganizeHandler(
-            self.root_dir, self.config, organize_callback
-        )
+        self.event_handler = FileOrganizeHandler(self.root_dir, self.config, organize_callback)
         self.observer = Observer()
         self.observer.schedule(
             self.event_handler,
             str(self.root_dir),
-            recursive=self.config.watch_recursive if hasattr(self.config, "watch_recursive") else True,
+            recursive=(
+                self.config.watch_recursive if hasattr(self.config, "watch_recursive") else True
+            ),
         )
 
         self.observer.start()

@@ -7,7 +7,6 @@ Created by orpheus497
 """
 
 import json
-import logging
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
@@ -87,9 +86,7 @@ class CheckpointManager:
             with open(self.checkpoint_file, "w") as f:
                 json.dump(asdict(checkpoint), f, indent=2)
 
-            logger.info(
-                f"Checkpoint saved: {phase} - {completed_ops}/{total_ops} operations"
-            )
+            logger.info(f"Checkpoint saved: {phase} - {completed_ops}/{total_ops} operations")
             self.checkpoint = checkpoint
 
         except (OSError, json.JSONDecodeError) as e:
@@ -107,7 +104,7 @@ class CheckpointManager:
             return None
 
         try:
-            with open(self.checkpoint_file, "r") as f:
+            with open(self.checkpoint_file) as f:
                 data = json.load(f)
 
             checkpoint = Checkpoint(**data)
