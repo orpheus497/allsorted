@@ -18,16 +18,28 @@ This project is hosted on [GitHub](https://github.com/orpheus497/allsorted).
 - Comprehensive project audit documentation in .dev-docs folder
 - Detailed remediation blueprint with implementation roadmap
 - Type safety improvements with proper Callable type hints
+- Public API method analyze_single_file() for analyzing individual files
+- xxHash algorithm support for 3-5x faster duplicate detection
+- Integrity verification system to ensure files not corrupted during moves
+- Post-move hash verification with automatic rollback on corruption detection
+- Enhanced executor with configurable integrity checking
 
 ### Changed
 - Type annotations corrected from bare callable to Callable[[int, int], None] in planner.py, executor.py, and analyzer.py
 - Repository URLs updated throughout project to reflect GitHub hosting
 - README documentation updated to accurately reflect current implementation status
 - Project documentation updated to remove test coverage claims pending comprehensive test suite implementation
+- Ignore pattern matching improved to properly handle glob patterns including ** for nested paths
+- Hash calculation updated to support both SHA256 and xxHash algorithms with automatic fallback
+- Executor cleanup method now properly uses configuration instead of creating new default config
+- Watcher module updated to use public API instead of private methods
 
 ### Fixed
 - Type annotation issues that prevented strict mypy compliance
 - Missing PEP 561 marker file for type checking support
+- Ignore patterns not properly matching files in nested directories using ** glob syntax
+- Hardcoded config in executor cleanup not respecting custom directory prefixes
+- Watcher accessing private analyzer methods breaking encapsulation
 
 ### Documentation
 - All Codeberg references replaced with GitHub URLs

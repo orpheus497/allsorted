@@ -9,6 +9,12 @@ from fnmatch import fnmatch
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Set
 
+try:
+    import xxhash
+    XXHASH_AVAILABLE = True
+except ImportError:
+    XXHASH_AVAILABLE = False
+
 from allsorted.config import Config
 from allsorted.models import DuplicateSet, FileInfo
 from allsorted.utils import is_hidden
@@ -179,10 +185,22 @@ class FileAnalyzer:
             return True
 
         # Check ignore patterns
-        relative_path = str(path.relative_to(root_dir))
         for pattern in self.config.ignore_patterns:
-            if fnmatch(relative_path, pattern) or fnmatch(path.name, pattern):
-                return True
+            # Use Path.match() for proper glob pattern support (including **)
+            try:
+                if path.match(pattern):
+                    return True
+                # Also check just the filename for simple patterns
+                if Path(path.name).match(pattern):
+                    return True
+                # Check relative path for directory patterns
+                relative_path = path.relative_to(root_dir)
+                if relative_path.match(pattern):
+                    return True
+            except ValueError:
+                # If match fails, fall back to simple name comparison
+                if path.name == pattern:
+                    return True
 
         return False
 
@@ -219,9 +237,26 @@ class FileAnalyzer:
             logger.warning(f"Cannot access file {file_path}: {e}")
             raise
 
+    def analyze_single_file(self, file_path: Path) -> Optional[FileInfo]:
+        """
+        Analyze a single file (public API).
+
+        This is the public method for analyzing individual files, useful for
+        watch mode and other single-file operations.
+
+        Args:
+            file_path: Path to file to analyze
+
+        Returns:
+            FileInfo instance or None if file cannot be analyzed
+        """
+        return self._analyze_file(file_path)
+
     def _calculate_hash(self, file_path: Path) -> Optional[str]:
         """
-        Calculate SHA256 hash of a file.
+        Calculate hash of a file using configured algorithm.
+
+        Supports SHA256 (cryptographically secure) and xxHash (fast).
 
         Args:
             file_path: Path to file
@@ -229,7 +264,23 @@ class FileAnalyzer:
         Returns:
             Hex digest of hash or None if file cannot be read
         """
-        sha256 = hashlib.sha256()
+        algorithm = self.config.hash_algorithm
+
+        # Initialize hasher based on algorithm
+        if algorithm == "xxhash":
+            if not XXHASH_AVAILABLE:
+                logger.warning(
+                    f"xxhash not available, falling back to sha256. "
+                    f"Install with: pip install xxhash"
+                )
+                hasher = hashlib.sha256()
+            else:
+                hasher = xxhash.xxh64()
+        elif algorithm == "sha256":
+            hasher = hashlib.sha256()
+        else:
+            logger.warning(f"Unknown hash algorithm '{algorithm}', using sha256")
+            hasher = hashlib.sha256()
 
         try:
             with open(file_path, "rb") as f:
@@ -237,9 +288,9 @@ class FileAnalyzer:
                     block = f.read(self.config.hash_block_size)
                     if not block:
                         break
-                    sha256.update(block)
+                    hasher.update(block)
 
-            return sha256.hexdigest()
+            return hasher.hexdigest()
 
         except (OSError, IOError) as e:
             logger.warning(f"Cannot read file {file_path} for hashing: {e}")
