@@ -373,7 +373,13 @@ def config_show(config: Optional[str]) -> None:
     type=click.Path(),
     help="Path for config file (default: ~/.config/allsorted/config.yaml)",
 )
-def config_init(path: Optional[str]) -> None:
+@click.option(
+    "--wizard",
+    "-w",
+    is_flag=True,
+    help="Run interactive configuration wizard",
+)
+def config_init(path: Optional[str], wizard: bool) -> None:
     """Initialize a new configuration file."""
 
     try:
@@ -384,15 +390,208 @@ def config_init(path: Optional[str]) -> None:
                 console.print("[yellow]Operation cancelled[/yellow]")
                 sys.exit(0)
 
-        cfg = Config()
-        save_config(cfg, config_path)
+        if wizard:
+            # Run interactive wizard
+            from allsorted.wizard import run_first_time_wizard
+            cfg = run_first_time_wizard()
+        else:
+            # Create default config
+            cfg = Config()
+            save_config(cfg, config_path)
 
-        console.print(f"[green]Configuration file created:[/green] {config_path}")
-        console.print("\nEdit this file to customize allsorted behavior.")
+            console.print(f"[green]Configuration file created:[/green] {config_path}")
+            console.print("\nEdit this file to customize allsorted behavior.")
+            console.print("Or run: [cyan]allsorted config init --wizard[/cyan] for interactive setup")
 
     except Exception as e:
         console.print(f"[bold red]Error:[/bold red] {e}")
         sys.exit(1)
+
+
+@main.command()
+@click.argument(
+    "shell",
+    type=click.Choice(["bash", "zsh", "fish"], case_sensitive=False),
+    required=False,
+)
+def completion(shell: Optional[str]) -> None:
+    """
+    Generate shell completion script.
+
+    Examples:
+        # Bash
+        allsorted completion bash > ~/.local/share/bash-completion/completions/allsorted
+
+        # Zsh
+        allsorted completion zsh > ~/.zsh/completion/_allsorted
+
+        # Fish
+        allsorted completion fish > ~/.config/fish/completions/allsorted.fish
+
+    Then restart your shell or source the completion file.
+    """
+    if not shell:
+        console.print("[bold cyan]Shell Completion Setup[/bold cyan]\n")
+        console.print("Generate completion scripts for your shell:\n")
+        console.print("[yellow]Bash:[/yellow]")
+        console.print("  allsorted completion bash > ~/.local/share/bash-completion/completions/allsorted")
+        console.print("  source ~/.bashrc\n")
+        console.print("[yellow]Zsh:[/yellow]")
+        console.print("  allsorted completion zsh > ~/.zsh/completion/_allsorted")
+        console.print("  # Add ~/.zsh/completion to your fpath in .zshrc")
+        console.print("  source ~/.zshrc\n")
+        console.print("[yellow]Fish:[/yellow]")
+        console.print("  allsorted completion fish > ~/.config/fish/completions/allsorted.fish")
+        sys.exit(0)
+
+    # Generate completion script
+    if shell == "bash":
+        _generate_bash_completion()
+    elif shell == "zsh":
+        _generate_zsh_completion()
+    elif shell == "fish":
+        _generate_fish_completion()
+
+
+def _generate_bash_completion() -> None:
+    """Generate bash completion script."""
+    script = """
+# Bash completion for allsorted
+_allsorted_completion() {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    # Main commands
+    if [ $COMP_CWORD -eq 1 ]; then
+        opts="organize preview validate undo config completion --help --version"
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        return 0
+    fi
+
+    # Command-specific options
+    case "${prev}" in
+        organize|preview)
+            opts="--config --dry-run --no-duplicates --strategy --conflict --report --verbose"
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            ;;
+        --strategy)
+            opts="by-extension by-date by-size hybrid"
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            ;;
+        --conflict)
+            opts="rename skip overwrite"
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            ;;
+        config)
+            opts="show init"
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            ;;
+        completion)
+            opts="bash zsh fish"
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            ;;
+        *)
+            # File/directory completion
+            COMPREPLY=( $(compgen -f -- ${cur}) )
+            ;;
+    esac
+}
+
+complete -F _allsorted_completion allsorted
+"""
+    print(script)
+
+
+def _generate_zsh_completion() -> None:
+    """Generate zsh completion script."""
+    script = """#compdef allsorted
+
+_allsorted() {
+    local -a commands
+    commands=(
+        'organize:Organize files in directory'
+        'preview:Preview organization without changes'
+        'validate:Validate directory can be organized'
+        'undo:Undo previous organization'
+        'config:Manage configuration'
+        'completion:Generate shell completion script'
+    )
+
+    local -a organize_opts
+    organize_opts=(
+        '--config[Use custom config file]:file:_files'
+        '--dry-run[Preview without changes]'
+        '--no-duplicates[Disable duplicate detection]'
+        '--strategy[Organization strategy]:strategy:(by-extension by-date by-size hybrid)'
+        '--conflict[Conflict resolution]:resolution:(rename skip overwrite)'
+        '--report[Save JSON report]:file:_files'
+        '--verbose[Verbose output]'
+    )
+
+    _arguments -C \
+        '1: :->command' \
+        '*:: :->args'
+
+    case $state in
+        command)
+            _describe -t commands 'allsorted command' commands
+            ;;
+        args)
+            case $words[1] in
+                organize|preview)
+                    _arguments $organize_opts
+                    ;;
+                config)
+                    _values 'config command' 'show' 'init'
+                    ;;
+                completion)
+                    _values 'shell' 'bash' 'zsh' 'fish'
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+_allsorted
+"""
+    print(script)
+
+
+def _generate_fish_completion() -> None:
+    """Generate fish completion script."""
+    script = """# Fish completion for allsorted
+
+# Main commands
+complete -c allsorted -f -n "__fish_use_subcommand" -a organize -d "Organize files in directory"
+complete -c allsorted -f -n "__fish_use_subcommand" -a preview -d "Preview organization without changes"
+complete -c allsorted -f -n "__fish_use_subcommand" -a validate -d "Validate directory can be organized"
+complete -c allsorted -f -n "__fish_use_subcommand" -a undo -d "Undo previous organization"
+complete -c allsorted -f -n "__fish_use_subcommand" -a config -d "Manage configuration"
+complete -c allsorted -f -n "__fish_use_subcommand" -a completion -d "Generate shell completion"
+
+# Organize options
+complete -c allsorted -f -n "__fish_seen_subcommand_from organize preview" -l config -d "Custom config file"
+complete -c allsorted -f -n "__fish_seen_subcommand_from organize preview" -l dry-run -d "Preview without changes"
+complete -c allsorted -f -n "__fish_seen_subcommand_from organize preview" -l no-duplicates -d "Disable duplicate detection"
+complete -c allsorted -f -n "__fish_seen_subcommand_from organize preview" -l strategy -d "Organization strategy" -a "by-extension by-date by-size hybrid"
+complete -c allsorted -f -n "__fish_seen_subcommand_from organize preview" -l conflict -d "Conflict resolution" -a "rename skip overwrite"
+complete -c allsorted -f -n "__fish_seen_subcommand_from organize preview" -l report -d "Save JSON report"
+complete -c allsorted -f -n "__fish_seen_subcommand_from organize preview" -l verbose -d "Verbose output"
+
+# Config subcommands
+complete -c allsorted -f -n "__fish_seen_subcommand_from config" -a "show init"
+
+# Completion shells
+complete -c allsorted -f -n "__fish_seen_subcommand_from completion" -a "bash zsh fish"
+
+# Global options
+complete -c allsorted -f -s v -l verbose -d "Enable verbose output"
+complete -c allsorted -f -l help -d "Show help message"
+complete -c allsorted -f -l version -d "Show version"
+"""
+    print(script)
 
 
 if __name__ == "__main__":
