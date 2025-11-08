@@ -310,7 +310,7 @@ class OrganizationExecutor:
                 if config.is_managed_directory(parent):
                     is_in_managed = True
                     break
-            
+
             # Also check if the directory itself is a top-level managed directory
             if dirpath.parent == root_dir and config.is_managed_directory(dirpath):
                 is_in_managed = True
