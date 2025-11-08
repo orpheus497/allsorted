@@ -1,0 +1,109 @@
+# allsorted Example Configuration File
+# Copy this to ~/.config/allsorted/config.yaml and customize
+# Created by orpheus497
+
+# Organization Strategy
+# Options: by-extension, by-date, by-size, hybrid
+strategy: by-extension
+
+# File Conflict Resolution
+# Options: rename, skip, overwrite
+conflict_resolution: rename
+
+# File Handling Options
+follow_symlinks: false        # Follow symbolic links during analysis
+ignore_hidden: true           # Ignore hidden files (starting with .)
+ignore_patterns:              # Glob patterns to ignore
+  - .devAI
+  - .git
+  - node_modules
+  - __pycache__
+  - .DS_Store
+  - Thumbs.db
+  - "*.tmp"
+  - "*.cache"
+
+# Duplicate Detection
+detect_duplicates: true       # Enable duplicate file detection
+isolate_duplicates: true      # Move duplicates to all_Duplicates folder
+
+# Advanced Hash Options
+hash_algorithm: sha256        # Options: sha256 (secure), xxhash (fast)
+hash_block_size: 65536        # Bytes to read per block (64KB default)
+
+# Performance Options
+parallel_processing: false    # Enable parallel file hashing (experimental)
+max_workers: 4                # Number of parallel workers
+use_async: false              # Use async I/O for better performance
+
+# Metadata-Based Organization
+use_metadata: false           # Enable metadata extraction
+metadata_strategy: auto       # Options: auto, exif-date, id3-artist, pdf-author
+perceptual_dedup: false       # Enable perceptual duplicate detection for images
+perceptual_threshold: 5       # Similarity threshold (0=exact, 10=very different)
+
+# Magic Number Classification
+use_magic: false              # Use file content detection instead of extension
+
+# Safety Options
+require_confirmation: false   # Prompt before executing operations
+create_backup: false          # Create backup before operations (not implemented)
+verify_integrity: false       # Verify file hash after moving
+
+# Logging Options
+log_level: INFO               # Options: DEBUG, INFO, WARNING, ERROR
+log_to_file: true            # Save logs to file
+log_directory: .devAI        # Directory for logs and operation history
+
+# Directory Naming
+directory_prefix: all_        # Prefix for all managed directories
+duplicates_folder: Duplicates # Name of duplicates folder (without prefix)
+folders_folder: Folders       # Name of folder for organizing directories
+
+# Watch Mode (if enabled via CLI)
+watch_interval: 1.0          # Seconds between file system checks
+watch_recursive: true        # Watch subdirectories
+watch_auto_organize: true    # Automatically organize new files
+
+# Archive Handling
+scan_archives: false         # Scan inside archive files (experimental)
+auto_extract: false          # Auto-extract archives before organizing
+
+# Custom Classification Rules
+# Extends default rules - format: Category > Subcategory > [extensions]
+classification_rules:
+  Code:
+    Rust:
+      - .rs
+      - .toml
+    Go:
+      - .go
+      - .mod
+    Zig:
+      - .zig
+  Docs:
+    Markdown:
+      - .md
+      - .markdown
+      - .mdx
+  Pics:
+    Modern:
+      - .avif
+      - .jxl
+      - .webp
+  Audio:
+    Modern:
+      - .opus
+      - .flac
+  Vids:
+    Modern:
+      - .av1
+      - .webm
+
+# Size-Based Classification Thresholds (in MB)
+# Used when strategy is 'by-size'
+size_thresholds:
+  small_max: 1
+  medium_min: 1
+  medium_max: 100
+  large_min: 100

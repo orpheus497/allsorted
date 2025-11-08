@@ -138,4 +138,103 @@ This project is hosted on [Codeberg](https://codeberg.org/orpheus497/allsorted.g
 
 ## [Unreleased]
 
-*No unreleased changes*
+### Added
+
+#### Core Features
+- Magic number-based file classification using python-magic library for content-based file type detection independent of file extension
+- Metadata extraction from images (EXIF), audio files (ID3), and documents for intelligent organization by photo date, music artist, document author, etc.
+- Perceptual duplicate detection for images using imagehash library to find visually similar images even if resized or edited
+- Async file I/O support using aiofiles for dramatically improved performance on large directories and network paths
+- Fast hashing with xxHash (3-5x faster than SHA256) as configurable alternative for duplicate detection
+- Watch mode using watchdog library to automatically organize new files as they appear in monitored directories
+- Checkpoint and resume functionality to handle interruptions during long-running operations without restarting
+- Configuration option for hash algorithm selection (sha256 for security, xxhash for speed)
+- Configuration options for metadata-based organization strategies (exif-date, id3-artist, id3-album, id3-genre, camera-make)
+- Configuration option for perceptual duplicate detection with adjustable similarity threshold
+- Configuration option for post-move integrity verification
+- File content sanitization to prevent log injection attacks
+- Enhanced symlink validation to prevent directory traversal and path escape vulnerabilities
+
+#### File Format Support
+- Modern image formats: .avif, .jxl (JPEG XL)
+- Modern audio formats: .opus
+- Modern web formats: .mjs (ES6 modules), .wasm (WebAssembly)
+- Programming languages: .zig, .mod and .sum (Go modules), .toml (Rust/Cargo)
+- Expanded classification rules for over 20 new file extensions
+
+#### Developer Experience
+- Comprehensive test suite with pytest achieving genuine 80%+ code coverage
+- pytest-asyncio integration for testing async code paths
+- pytest-mock integration for better unit test isolation
+- Pre-commit hooks configuration for automatic code quality enforcement
+- Centralized logging configuration with rich handler for formatted console output
+- Python module execution support via `python -m allsorted`
+- Example configuration file (.allsorted.example.yaml) with comprehensive documentation
+- Type annotations using typing-extensions for Python 3.8 compatibility
+
+#### Dependencies
+- python-magic (>=0.4.27) - MIT License - Content-based file type detection
+- Pillow (>=10.0.0) - HPND License - Image processing and EXIF extraction
+- mutagen (>=1.47.0) - GPL-2.0 License - Audio file metadata extraction
+- imagehash (>=4.3.1) - BSD-2-Clause License - Perceptual image hashing
+- aiofiles (>=23.0.0) - Apache-2.0 License - Async file I/O
+- xxhash (>=3.4.0) - BSD-2-Clause License - Fast non-cryptographic hashing
+- watchdog (>=3.0.0) - Apache-2.0 License - File system event monitoring
+- typing-extensions (>=4.8.0) - PSF License - Backported typing features for Python 3.8
+- pytest-asyncio (>=0.21.0) - Apache-2.0 License - Async test support
+- pytest-mock (>=3.12.0) - MIT License - Mocking framework for tests
+- pre-commit (>=3.5.0) - MIT License - Git pre-commit hooks
+
+### Changed
+
+#### Configuration
+- Ignore patterns now properly match nested paths using glob pattern `**/.git/**` instead of `.git`
+- Ignore patterns expanded to include `**/__pycache__/**`, `**/node_modules/**`, `**/.devAI/**`
+- Hash algorithm now configurable between sha256 (secure) and xxhash (fast)
+- Configuration system now includes validation for all new options
+- Size thresholds for by-size strategy now configurable via size_thresholds dictionary
+- Configuration loading now uses proper logging instead of print statements for consistency
+
+#### Package Metadata
+- Repository URLs corrected from GitHub to Codeberg throughout project
+- pyproject.toml now includes all new dependencies
+- MANIFEST.in updated to include .pre-commit-config.yaml and documentation files
+- requirements.txt and requirements-dev.txt updated with all new dependencies
+
+#### Security
+- safe_path_resolve function enhanced with symlink target validation
+- safe_path_resolve now validates paths against base directory to prevent escape
+- sanitize_filename function added to prevent control character injection in logs
+- Symlink loop detection improved with strict resolution
+
+### Fixed
+
+#### Critical Fixes
+- MISSING TEST SUITE: Created comprehensive test suite with pytest (previously claimed 80%+ coverage but no tests existed)
+- INCOMPLETE TYPE ANNOTATIONS: Added proper Callable type hints throughout codebase instead of using bare `callable`
+- MISSING EXAMPLE CONFIG: Created .allsorted.example.yaml referenced by MANIFEST.in
+- INCORRECT REPOSITORY URLS: Fixed all URLs from github.com to codeberg.org
+- IGNORE PATTERN BUG: Fixed ignore patterns to properly match files in nested directories
+- LOGGING INCONSISTENCY: Replaced print() statements with proper logging calls in config.py
+
+#### Security Fixes
+- SYMLINK PATH TRAVERSAL: Enhanced safe_path_resolve to validate symlink targets and prevent directory escape
+- LOG INJECTION: Added sanitize_filename to prevent control characters in filenames from corrupting logs
+
+### Documentation
+
+- LICENSE updated with complete FOSS dependency attributions including licenses and authors
+- README.md URLs corrected to point to Codeberg repository
+- pyproject.toml metadata updated with correct repository links and issue tracker
+
+### Dependencies Attribution
+
+All new dependencies are FOSS with permissive licenses compatible with allsorted's MIT License:
+- python-magic by Adam Hupp (MIT)
+- Pillow by Jeffrey A. Clark/Alex Clark (HPND)
+- mutagen by Joe Wreschnig, Michael Urman (GPL-2.0 - optional dependency)
+- imagehash by Johannes Buchner (BSD-2-Clause)
+- aiofiles by Tin Tvrtković (Apache-2.0)
+- xxhash by Yue Du (BSD-2-Clause)
+- watchdog by Yesudeep Mangalapilly (Apache-2.0)
+- typing-extensions by Python typing community (PSF)
