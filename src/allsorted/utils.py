@@ -101,10 +101,7 @@ def sanitize_filename(filename: str) -> str:
     Returns:
         Sanitized filename safe for logging and filesystem operations
     """
-    # Remove control characters (including newlines) that could cause log injection
-    sanitized = "".join(char for char in filename if ord(char) >= 32 or char in ("\t",))
-
-    # Remove or replace problematic characters
+    # First, replace problematic characters
     replacements = {
         "\n": "_",
         "\r": "_",
@@ -112,8 +109,12 @@ def sanitize_filename(filename: str) -> str:
         "\x00": "",
     }
 
+    sanitized = filename
     for old, new in replacements.items():
         sanitized = sanitized.replace(old, new)
+
+    # Then remove any remaining control characters
+    sanitized = "".join(char for char in sanitized if ord(char) >= 32 or char in ("\t",))
 
     return sanitized
 

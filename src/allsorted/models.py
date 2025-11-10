@@ -101,7 +101,7 @@ class DuplicateSet:
     @property
     def extras(self) -> List[FileInfo]:
         """All duplicate files except the primary."""
-        return [f for f in self.files if f != self.primary]
+        return [f for f in self.files if f.path != self.primary.path] if self.primary else []
 
     @property
     def count(self) -> int:

@@ -222,6 +222,7 @@ class TestSecurityFunctions:
 
     def test_safe_path_resolve_relative(self, temp_dir: Path) -> None:
         """Test safe path resolution with relative path."""
-        result = safe_path_resolve(Path("subdir/file.txt"), temp_dir)
+        relative_path = temp_dir / "subdir/file.txt"
+        result = safe_path_resolve(relative_path, temp_dir)
 
         assert result.is_absolute()
