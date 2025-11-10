@@ -23,7 +23,7 @@ class TestFileAnalyzer:
 
         assert analyzer.config == config
         assert analyzer.all_files == []
-        assert analyzer.file_hashes == {}
+        assert len(analyzer.files_by_hash) == 0
 
     def test_analyze_empty_directory(self, temp_dir: Path) -> None:
         """Test analyzing an empty directory."""
