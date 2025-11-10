@@ -100,10 +100,17 @@ fi
 echo ""
 echo "8. Checking .gitignore..."
 if [ -f ".gitignore" ]; then
-    if grep -q ".dev-docs" .gitignore; then
-        check_pass ".gitignore excludes .dev-docs"
-    else
+    GITIGNORE_OK=true
+    if ! grep -q ".dev-docs" .gitignore; then
         check_warn ".gitignore doesn't exclude .dev-docs"
+        GITIGNORE_OK=false
+    fi
+    if ! grep -q ".devAI" .gitignore; then
+        check_warn ".gitignore doesn't exclude .devAI"
+        GITIGNORE_OK=false
+    fi
+    if [ "$GITIGNORE_OK" = true ]; then
+        check_pass ".gitignore excludes development directories"
     fi
 else
     check_warn ".gitignore missing"
