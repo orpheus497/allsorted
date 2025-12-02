@@ -7,7 +7,7 @@ name = "allsorted"
 version = "1.1.0"
 description = "Intelligent file organizer that classifies, deduplicates, and organizes directories"
 readme = "README.md"
-authors = [{name = "orpheus497", email = ""}]
+authors = [{name = "orpheus497"}]
 license = {text = "MIT"}
 requires-python = ">=3.8"
 classifiers = [
