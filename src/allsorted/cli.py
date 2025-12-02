@@ -330,6 +330,64 @@ def validate(directory: str, config: Optional[str]) -> None:
         sys.exit(1)
 
 
+@main.command()
+@click.argument("directory", type=click.Path(exists=True, file_okay=False), default=".")
+@click.option(
+    "--config",
+    "-c",
+    type=click.Path(exists=True),
+    help="Path to configuration file",
+)
+@click.pass_context
+def watch(ctx: click.Context, directory: str, config: Optional[str]) -> None:
+    """Watch a directory and automatically organize new files.
+
+    This command monitors DIRECTORY for new files and automatically
+    organizes them according to the configured classification rules.
+
+    Press Ctrl+C to stop watching.
+    """
+    try:
+        from allsorted.watcher import DirectoryWatcher, WATCHDOG_AVAILABLE
+
+        if not WATCHDOG_AVAILABLE:
+            console.print(
+                "[bold red]Error:[/bold red] Watch mode requires the 'watchdog' package.\n"
+                "Install with: [cyan]pip install watchdog[/cyan]"
+            )
+            sys.exit(1)
+
+        cfg = load_config(Path(config) if config else None)
+        root_dir = Path(directory).resolve()
+
+        console.print(f"[bold cyan]Watching:[/bold cyan] {root_dir}")
+        console.print("[yellow]Press Ctrl+C to stop watching[/yellow]\n")
+
+        def on_file_organized(file_path: Path) -> None:
+            """Callback when a file is organized."""
+            console.print(f"[green]✓[/green] Organized: {file_path.name}")
+
+        watcher = DirectoryWatcher(root_dir, cfg)
+        watcher.start(organize_callback=on_file_organized)
+
+        try:
+            # Keep running until interrupted
+            import time
+
+            while watcher.is_running():
+                time.sleep(1)
+        except KeyboardInterrupt:
+            console.print("\n[yellow]Stopping watcher...[/yellow]")
+            watcher.stop()
+            console.print("[green]Watcher stopped[/green]")
+
+    except Exception as e:
+        console.print(f"[bold red]Error:[/bold red] {e}")
+        if ctx.obj.get("verbose"):
+            console.print_exception()
+        sys.exit(1)
+
+
 @main.group()
 def config_cmd() -> None:
     """Configuration management commands."""

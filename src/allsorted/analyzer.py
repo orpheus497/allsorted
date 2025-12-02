@@ -23,11 +23,22 @@ try:
 except ImportError:
     AIOFILES_AVAILABLE = False
 
+try:
+    import imagehash
+    from PIL import Image
+
+    IMAGEHASH_AVAILABLE = True
+except ImportError:
+    IMAGEHASH_AVAILABLE = False
+
 from allsorted.config import Config
 from allsorted.models import DuplicateSet, FileInfo
 from allsorted.utils import is_hidden
 
 logger = logging.getLogger(__name__)
+
+# Image extensions for perceptual hashing
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp", ".heic"}
 
 
 class FileAnalyzer:
@@ -46,6 +57,8 @@ class FileAnalyzer:
         self.ignored_files: List[Path] = []
         self.directories: List[Path] = []
         self.errors: List[tuple[Path, str]] = []
+        # Track perceptual hashes for image duplicate detection
+        self.perceptual_hashes: Dict[str, List[FileInfo]] = defaultdict(list)
 
     def analyze_directory(
         self,
@@ -430,9 +443,107 @@ class FileAnalyzer:
         except OSError:
             return None
 
+    def _calculate_perceptual_hash(self, file_path: Path) -> Optional[str]:
+        """
+        Calculate perceptual hash of an image file for visual similarity detection.
+
+        This allows detection of visually similar images even if they have
+        different sizes, compressions, or minor modifications.
+
+        Args:
+            file_path: Path to image file
+
+        Returns:
+            Hex string of perceptual hash or None if not an image or error
+        """
+        if not IMAGEHASH_AVAILABLE:
+            return None
+
+        # Only process image files
+        if file_path.suffix.lower() not in IMAGE_EXTENSIONS:
+            return None
+
+        try:
+            with Image.open(file_path) as img:
+                # Use average hash (fast and effective)
+                phash = imagehash.average_hash(img)
+                return str(phash)
+        except Exception as e:
+            logger.debug(f"Could not calculate perceptual hash for {file_path}: {e}")
+            return None
+
+    def _find_perceptual_duplicates(self) -> List[DuplicateSet]:
+        """
+        Find visually similar images using perceptual hashing.
+
+        Returns:
+            List of DuplicateSet instances for perceptually similar images
+        """
+        if not IMAGEHASH_AVAILABLE:
+            logger.warning(
+                "Perceptual duplicate detection requested but imagehash not available. "
+                "Install with: pip install imagehash"
+            )
+            return []
+
+        threshold = self.config.perceptual_threshold
+        logger.info(f"Finding perceptual duplicates with threshold {threshold}")
+
+        # Calculate perceptual hashes for all image files
+        image_hashes: Dict[str, List[FileInfo]] = defaultdict(list)
+
+        for file_info in self.all_files:
+            if file_info.extension.lower() in IMAGE_EXTENSIONS:
+                phash = self._calculate_perceptual_hash(file_info.path)
+                if phash:
+                    image_hashes[phash].append(file_info)
+
+        # Find groups of similar images
+        duplicate_sets = []
+        processed_hashes: set = set()
+
+        for phash, files in image_hashes.items():
+            if phash in processed_hashes:
+                continue
+
+            # Find all similar hashes
+            similar_files = list(files)
+
+            for other_hash, other_files in image_hashes.items():
+                if other_hash == phash or other_hash in processed_hashes:
+                    continue
+
+                try:
+                    # Calculate hash distance
+                    hash1 = imagehash.hex_to_hash(phash)
+                    hash2 = imagehash.hex_to_hash(other_hash)
+                    distance = hash1 - hash2
+
+                    if distance <= threshold:
+                        similar_files.extend(other_files)
+                        processed_hashes.add(other_hash)
+                except Exception as e:
+                    logger.debug(f"Error comparing hashes: {e}")
+
+            processed_hashes.add(phash)
+
+            if len(similar_files) > 1:
+                try:
+                    duplicate_set = DuplicateSet(
+                        hash=f"perceptual_{phash}",
+                        files=similar_files
+                    )
+                    duplicate_sets.append(duplicate_set)
+                except ValueError as e:
+                    logger.warning(f"Error creating perceptual duplicate set: {e}")
+
+        logger.info(f"Found {len(duplicate_sets)} sets of perceptually similar images")
+        return duplicate_sets
+
     def get_duplicate_sets(self) -> List[DuplicateSet]:
         """
         Get all sets of duplicate files.
+        Includes both content-based and perceptual duplicates if enabled.
 
         Returns:
             List of DuplicateSet instances
@@ -441,6 +552,8 @@ class FileAnalyzer:
             return []
 
         duplicate_sets = []
+
+        # Content-based duplicates (exact match)
         for file_hash, files in self.files_by_hash.items():
             if len(files) > 1:
                 try:
@@ -448,6 +561,11 @@ class FileAnalyzer:
                     duplicate_sets.append(duplicate_set)
                 except ValueError as e:
                     logger.warning(f"Error creating duplicate set for hash {file_hash}: {e}")
+
+        # Perceptual duplicates (visually similar images) if enabled
+        if self.config.perceptual_dedup:
+            perceptual_dups = self._find_perceptual_duplicates()
+            duplicate_sets.extend(perceptual_dups)
 
         logger.info(f"Found {len(duplicate_sets)} sets of duplicate files")
         return duplicate_sets
@@ -506,3 +624,4 @@ class FileAnalyzer:
         self.ignored_files.clear()
         self.directories.clear()
         self.errors.clear()
+        self.perceptual_hashes.clear()
